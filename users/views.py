@@ -158,13 +158,24 @@ def get_new_messages_api(request, chat_id):
     chat.messages.filter(is_read=False).exclude(sender=request.user).update(is_read=True)
     
     messages = chat.messages.order_by('timestamp')
-    msg_list = [{
-        'id': msg.id,
-        'sender': msg.sender.username,
-        'is_mine': msg.sender == request.user,
-        'text': msg.text,
-        'timestamp': msg.timestamp.strftime('%H:%M')
-    } for msg in messages]
+    
+    msg_list = []
+    for msg in messages:
+        # Берем аватарку напрямую из User
+        avatar_url = ''
+        if msg.sender.avatar:
+            avatar_url = msg.sender.avatar.url
+            
+        msg_list.append({
+            'id': msg.id,
+            'sender': msg.sender.username,
+            'sender_name': msg.sender.username,
+            'avatar_url': avatar_url,
+            'is_mine': msg.sender == request.user,
+            'text': msg.text,
+            'timestamp': msg.timestamp.strftime('%H:%M')
+        })
+        
     return JsonResponse({'messages': msg_list})
 
 # --- КВИЗ ---
