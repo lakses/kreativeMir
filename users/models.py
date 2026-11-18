@@ -7,14 +7,21 @@ from django.contrib.contenttypes.fields import (
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
+class Tag(models.Model):
+    name = models.CharField(max_length=50, unique=True, verbose_name="Название")
+
+    def __str__(self):
+        return self.name
+
 
 class User(AbstractUser):
+    
     avatar = models.ImageField(upload_to='avatars/%Y/%m/', blank=True, null=True)
     contact_count = models.PositiveIntegerField(default=0)
 
     # Друзья (симметричная связь)
     friends = models.ManyToManyField('self', blank=True)
-
+    tags = models.ManyToManyField(Tag, blank=True, verbose_name="Сферы деятельности")
     # Лайки, поставленные ЭТОМУ пользователю (на его профиль)
     profile_likes = GenericRelation(
         'Like',

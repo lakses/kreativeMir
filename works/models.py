@@ -19,7 +19,7 @@ class Work(models.Model):
 
     description = models.TextField(blank=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
-    # НОВОЕ ПОЛЕ: Обратная связь от модератора
+    is_pinned = models.BooleanField(default=False, verbose_name="Закреплено")
     moderator_feedback = models.TextField(blank=True, null=True, verbose_name="Комментарий модератора")
     created_at = models.DateTimeField(auto_now_add=True)
 

@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Все креаторы</title>
+    <style>
+       body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; color: #333; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 2rem 1rem; padding-top: 80px; /* 80px — чтобы панель не перекрывала заголовок */ }
+        .page-title { margin: 0 0 1.5rem 0; font-size: 1.8rem; color: #222; }
+
+        /* Фильтры */
+        .filters { background: #fff; padding: 1.2rem 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 1.5rem; }
+        .filters-row { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; margin-bottom: 1rem; }
+        .filters input[type="text"], .filters select { padding: 0.6rem 0.8rem; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95rem; font-family: inherit; }
+        .filters input[type="text"] { flex: 1; min-width: 200px; }
+        .filters input[type="text"]:focus, .filters select:focus { border-color: #28a745; outline: none; box-shadow: 0 0 0 3px rgba(40,167,69,0.1); }
+        .filters label.check { display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; font-size: 0.95rem; user-select: none; }
+        .filters button[type="submit"] { padding: 0.6rem 1.4rem; background: #28a745; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; font-family: inherit; font-size: 0.95rem; }
+        .filters button[type="submit"]:hover { background: #218838; }
+        .filters a.reset { color: #dc3545; text-decoration: none; font-size: 0.9rem; margin-left: 0.5rem; }
+        .filters a.reset:hover { text-decoration: underline; }
+
+        .tags-filter { display: flex; flex-wrap: wrap; gap: 0.4rem; max-height: 140px; overflow-y: auto; padding: 0.5rem 0; border-top: 1px solid #eee; }
+        .tags-filter label { background: #f1f3f5; border: 1px solid #e0e0e0; padding: 0.3rem 0.7rem; border-radius: 20px; font-size: 0.85rem; cursor: pointer; user-select: none; display: inline-flex; align-items: center; gap: 0.3rem; }
+        .tags-filter label:hover { background: #e9ecef; }
+        .tags-filter label:has(input:checked) { background: #d4edda; border-color: #c3e6cb; color: #155724; font-weight: 600; }
+        .tags-filter input[type="checkbox"] { margin: 0; }
+
+        /* Карточка креатора */
+        .creator-card { background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 1.2rem; }
+        .creator-header { display: flex; gap: 1.2rem; align-items: flex-start; }
+        .creator-avatar { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; flex-shrink: 0; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .avatar-placeholder { display: flex; align-items: center; justify-content: center; background: #e9ecef; color: #adb5bd; font-size: 0.8rem; }
+        .creator-info { flex-grow: 1; min-width: 0; }
+        .creator-name { margin: 0 0 0.2rem 0; font-size: 1.3rem; color: #222; }
+        .creator-name a { color: inherit; text-decoration: none; }
+        .creator-name a:hover { color: #007bff; }
+        .creator-stats { margin: 0.2rem 0; color: #666; font-size: 0.9rem; }
+        .creator-realname { margin: 0; color: #666; font-size: 0.9rem; }
+        .creator-bio { margin: 0.6rem 0 0 0; color: #444; font-size: 0.93rem; line-height: 1.5; }
+
+        .badges-container { margin-top: 0.5rem; display: flex; gap: 0.4rem; flex-wrap: wrap; }
+        .badge { padding: 0.2rem 0.65rem; border-radius: 20px; font-size: 0.73rem; font-weight: 600; }
+        .badge-orders { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+        .badge-collab { background: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; }
+
+        .user-tags { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.6rem; }
+        .user-tag { background: #e9ecef; color: #495057; padding: 0.2rem 0.65rem; border-radius: 20px; font-size: 0.78rem; font-weight: 500; }
+
+        /* Закреплённые работы — горизонтальный скролл */
+        .pinned-section { margin-top: 1.2rem; padding-top: 1rem; border-top: 1px dashed #e0e0e0; }
+        .pinned-title { font-size: 0.8rem; color: #888; margin: 0 0 0.6rem 0; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+        .pinned-scroll { display: flex; gap: 0.8rem; overflow-x: auto; padding-bottom: 0.6rem; scrollbar-width: thin; }
+        .pinned-scroll::-webkit-scrollbar { height: 8px; }
+        .pinned-scroll::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+        .pinned-scroll::-webkit-scrollbar-thumb:hover { background: #aaa; }
+        .work-card { flex: 0 0 150px; min-width: 150px; background: #fff; border: 1px solid #eee; border-radius: 10px; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s; text-decoration: none; color: inherit; display: block; }
+        .work-card:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,0.1); }
+        .work-card img { width: 100%; height: 100px; object-fit: cover; display: block; }
+        .media-placeholder { display: flex; align-items: center; justify-content: center; height: 100px; font-size: 2rem; background: #f8f9fa; color: #ccc; }
+        .work-info { padding: 0.5rem 0.7rem; }
+        .work-title { font-size: 0.82rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #333; }
+        .work-meta { font-size: 0.72rem; color: #888; margin-top: 0.25rem; }
+
+        /* Пагинация */
+        .pagination { display: flex; justify-content: center; gap: 0.4rem; margin-top: 2rem; flex-wrap: wrap; }
+        .pagination a, .pagination span { padding: 0.45rem 0.9rem; border-radius: 6px; text-decoration: none; color: #333; background: #fff; border: 1px solid #ddd; font-size: 0.9rem; }
+        .pagination .current { background: #28a745; color: #fff; border-color: #28a745; font-weight: 600; }
+        .pagination a:hover { background: #f8f9fa; }
+
+        .empty-state { text-align: center; padding: 4rem 2rem; background: #fff; border-radius: 12px; color: #888; }
+        .empty-state h2 { color: #555; margin-top: 0; }
+
+        /* --- СТИЛИ ДЛЯ ВЕРХНЕЙ ПАНЕЛИ --- */
+        .top-nav {
+            position: fixed; /* Фиксируем вверху */
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #ffffff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            z-index: 1000;
+            transition: transform 0.3s ease; /* Плавное выезжание */
+        }
+
+        /* Класс для скрытия панели */
+        .top-nav.hidden-nav {
+            transform: translateY(-100%);
+        }
+
+        .top-nav-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 60px;
+        }
+
+        .brand {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #222;
+            text-decoration: none;
+        }
+
+        .brand:hover { color: #007bff; }
+
+        .nav-links {
+            display: flex;
+            gap: 1.2rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: #444;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover { color: #007bff; }
+
+        .nav-logout {
+            background: none;
+            border: none;
+            color: #dc3545;
+            font-weight: 500;
+            font-size: 0.95rem;
+            cursor: pointer;
+            font-family: inherit;
+            padding: 0;
+            transition: color 0.2s;
+        }
+
+        .nav-logout:hover { color: #a71d2a; }
+        /* Настройка Select2 под стиль сайта */
+        .select2-container--default .select2-selection--multiple {
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            min-height: 42px;
+            padding: 4px 8px;
+            font-family: inherit;
+            font-size: 0.95rem;
+        }
+        .select2-container--default.select2-container--focus .select2-selection--multiple {
+            border-color: #28a745;
+            box-shadow: 0 0 0 3px rgba(40,167,69,0.1);
+        }
+        .select2-container--default .select2-selection--multiple .select2-selection__choice {
+            background-color: #e9ecef;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 2px 8px;
+            margin-top: 4px;
+            color: #333;
+        }
+        .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+            color: #dc3545;
+            margin-right: 5px;
+            border: none;
+        }
+        .select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
+            background-color: transparent;
+            color: #a71d2a;
+        }
+    </style>
+    <!-- jQuery (нужен для Select2) -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+</head>
+<body>
+    <!-- ВЕРХНЯЯ ПАНЕЛЬ НАВИГАЦИИ -->
+<header class="top-nav">
+    <div class="top-nav-container">
+        <a href="{% url 'profile' %}" class="brand">🎨 КреативМир</a>
+        <nav class="nav-links">
+            <a href="{% url 'profile' %}">👤 Мой профиль</a>
+            <a href="{% url 'creators_list' %}">🎨 Все креаторы</a>
+            <a href="{% url 'upload_work' %}">📤 Загрузить работу</a>
+            <form method="post" action="{% url 'logout' %}" style="margin: 0; display: flex; align-items: center;">
+                {% csrf_token %}
+                <button type="submit" class="nav-logout">🚪 Выйти</button>
+            </form>
+        </nav>
+    </div>
+</header>
+<div class="container">
+    <h1 class="page-title">🎨 Все креаторы</h1>
+
+    <!-- ФИЛЬТРЫ -->
+    <form method="get" class="filters">
+        <div class="filters-row">
+            <input type="text" name="q" value="{{ q }}" placeholder="🔍 Поиск по юзернейму...">
+
+            <select name="sort">
+                <option value="random" {% if selected_sort == 'random' %}selected{% endif %}>🎲 Случайно</option>
+                <option value="new" {% if selected_sort == 'new' %}selected{% endif %}>🆕 Новые</option>
+                <option value="popular" {% if selected_sort == 'popular' %}selected{% endif %}>🔥 Популярные</option>
+                <option value="active" {% if selected_sort == 'active' %}selected{% endif %}>🎯 Активные</option>
+            </select>
+
+            <label class="check">
+                <input type="checkbox" name="collab" {% if collab_checked %}checked{% endif %}>
+                🤝 Готовы к сотрудничеству
+            </label>
+
+            <button type="submit">Применить</button>
+            <a href="{% url 'creators_list' %}" class="reset">Сбросить</a>
+        </div>
+
+        {% if all_tags %}
+            <div style="margin-top: 0.5rem; border-top: 1px solid #eee; padding-top: 1rem;">
+                <label for="tags-select" style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: #555; font-weight: 500;">🏷️ Фильтр по тегам:</label>
+                <select name="tags" id="tags-select" class="select2-tags" multiple="multiple" style="width: 100%;">
+                    {% for tag in all_tags %}
+                        <option value="{{ tag.id }}" {% if tag.id in selected_tag_ids %}selected{% endif %}>
+                            #{{ tag.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        {% endif %}
+    </form>
+
+    <!-- СПИСОК -->
+    {% for creator in creators %}
+        <div class="creator-card">
+            <div class="creator-header">
+                {% if creator.avatar %}
+                    <img src="{{ creator.avatar.url }}" alt="Аватар" class="creator-avatar">
+                {% else %}
+                    <div class="creator-avatar avatar-placeholder">Нет фото</div>
+                {% endif %}
+
+                <div class="creator-info">
+                    <h2 class="creator-name">
+                        <a href="{% url 'profile_detail' creator.username %}">{{ creator.username }}</a>
+                    </h2>
+
+                    <p class="creator-stats">
+                        🖼 {{ creator.approved_works_count }} работ &nbsp;·&nbsp;
+                        ❤️ {{ creator.total_likes }} лайков
+                    </p>
+
+                    {% if creator.first_name or creator.last_name %}
+                        <p class="creator-realname">{{ creator.first_name }} {{ creator.last_name }}</p>
+                    {% endif %}
+
+                    {% if creator.bio %}
+                        <p class="creator-bio">{{ creator.bio|truncatewords:25 }}</p>
+                    {% endif %}
+
+                    <div class="badges-container">
+                        {% if creator.available_for_orders %}
+                            <span class="badge badge-orders">🟢 Могу брать заказы</span>
+                        {% endif %}
+                        {% if creator.open_to_collaboration %}
+                            <span class="badge badge-collab">🤝 Готов к сотрудничеству</span>
+                        {% endif %}
+                    </div>
+
+                    {% if creator.tags.all %}
+                        <div class="user-tags">
+                            {% for tag in creator.tags.all %}
+                                <span class="user-tag">#{{ tag.name }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if creator.pinned_works_list %}
+                <div class="pinned-section">
+                    <div class="pinned-title">📌 Закреплённые работы</div>
+                    <div class="pinned-scroll">
+                        {% for work in creator.pinned_works_list %}
+                            <a href="{% url 'work_detail' work.pk %}" class="work-card">
+                                {% if work.thumbnail %}
+                                    <img src="{{ work.thumbnail.url }}" alt="{{ work.title }}">
+                                {% elif work.image %}
+                                    <img src="{{ work.image.url }}" alt="{{ work.title }}">
+                                {% elif work.video %}
+                                    <div class="media-placeholder">🎬</div>
+                                {% elif work.audio %}
+                                    <div class="media-placeholder">🎵</div>
+                                {% endif %}
+                                <div class="work-info">
+                                    <div class="work-title">{{ work.title }}</div>
+                                    <div class="work-meta">
+                                        ❤️ {{ work.likes.count }} &nbsp;|&nbsp; 💬 {{ work.comments.count }}
+                                    </div>
+                                </div>
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    {% empty %}
+        <div class="empty-state">
+            <h2>Никого не найдено</h2>
+            <p>Попробуйте изменить фильтры или поисковый запрос.</p>
+        </div>
+    {% endfor %}
+
+    <!-- ПАГИНАЦИЯ -->
+    {% if page_obj.has_other_pages %}
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}{% if filter_query %}&{{ filter_query }}{% endif %}">← Назад</a>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if num == page_obj.number %}
+                    <span class="current">{{ num }}</span>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <a href="?page={{ num }}{% if filter_query %}&{{ filter_query }}{% endif %}">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if filter_query %}&{{ filter_query }}{% endif %}">Вперёд →</a>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+<script>
+    let lastScrollTop = 0;
+    const navBar = document.querySelector('.top-nav');
+
+    window.addEventListener('scroll', function() {
+        let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        
+        // Если мы в самом верху страницы (отступ меньше 10 пикселей) — показываем
+        if (scrollTop < 10) {
+            navBar.classList.remove('hidden-nav');
+        } else {
+            // Если прокрутили вниз — прячем
+            navBar.classList.add('hidden-nav');
+        }
+        
+        lastScrollTop = scrollTop;
+    });
+</script>
+<script>
+    $(document).ready(function () {
+        $('.select2-tags').select2({
+            placeholder: "Начните вводить название тега...",
+            allowClear: true,
+            width: '100%',
+            closeOnSelect: false, // Чтобы можно было выбрать несколько тегов подряд
+            language: {
+                noResults:     function () { return "Ничего не найдено"; },
+                searching:     function () { return "Поиск..."; },
+                inputTooShort: function () { return "Введите название..."; },
+                loadingMore:   function () { return "Загрузка..."; },
+            }
+        });
+    });
+</script>
+</body>
+</html>

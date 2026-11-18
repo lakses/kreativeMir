@@ -3,6 +3,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import RedirectView  # <-- добавили импорт
+from django.urls import path
 
 urlpatterns = [
     # Редирект с главной страницы (/) сразу в профиль
@@ -15,6 +16,7 @@ urlpatterns = [
     
     path('users/', include('users.urls')),
     path('works/', include('works.urls')),
+    path('creators/', include('creators.urls')),
 ]
 
 # Раздача медиафайлов (аватарки, работы) в режиме разработки

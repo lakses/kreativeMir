@@ -1,8 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
+from django.contrib import messages
 from .models import Work, Comment
 from users.models import Like
+
 
 @login_required
 def upload_work(request):
@@ -13,7 +15,7 @@ def upload_work(request):
         image = request.FILES.get('image')
         video = request.FILES.get('video')
         audio = request.FILES.get('audio')
-        thumbnail = request.FILES.get('thumbnail') # <-- Ловим обложку
+        thumbnail = request.FILES.get('thumbnail')
 
         if title and (image or video or audio):
             work = Work(
@@ -27,25 +29,27 @@ def upload_work(request):
                 work.image = image
             elif video:
                 work.video = video
-                if thumbnail: work.thumbnail = thumbnail # <-- Сохраняем обложку для видео
+                if thumbnail: work.thumbnail = thumbnail
             elif audio:
                 work.audio = audio
-                if thumbnail: work.thumbnail = thumbnail # <-- Сохраняем обложку для аудио
+                if thumbnail: work.thumbnail = thumbnail
                 
             work.save()
             return redirect('profile')
             
     return render(request, 'works/upload.html')
 
+
 @login_required
 def delete_work(request, pk):
-    # Ищем работу. Важно: только автор может её удалить, и только если она отклонена
-    work = get_object_or_404(Work, pk=pk, author=request.user, status='rejected')
+    # Теперь можно удалять ЛЮБУЮ свою работу (и одобренную, и отклоненную)
+    work = get_object_or_404(Work, pk=pk, author=request.user)
     
     if request.method == 'POST':
         work.delete()
         
     return redirect('profile')
+
 
 @login_required
 def work_detail(request, pk):
@@ -60,7 +64,7 @@ def work_detail(request, pk):
             object_id=work.id
         )
         if not created:
-            like.delete() # Если лайк уже был, убираем его (дизлайк)
+            like.delete()
         return redirect('work_detail', pk=work.pk)
 
     # Логика комментариев
@@ -70,7 +74,6 @@ def work_detail(request, pk):
             Comment.objects.create(work=work, author=request.user, text=text)
         return redirect('work_detail', pk=work.pk)
 
-    # Проверяем, лайкнул ли текущий юзер эту работу
     ct = ContentType.objects.get_for_model(work)
     is_liked = Like.objects.filter(user=request.user, content_type=ct, object_id=work.id).exists()
 
@@ -81,13 +84,20 @@ def work_detail(request, pk):
     }
     return render(request, 'works/work_detail.html', context)
 
+
 @login_required
-@login_required
-def delete_work(request, pk):
-    # Ищем работу по ID и проверяем, что она принадлежит текущему пользователю
-    work = get_object_or_404(Work, pk=pk, author=request.user)
+def toggle_pin_work(request, pk):
+    work = get_object_or_404(Work, pk=pk, author=request.user, status='approved')
     
-    if request.method == 'POST':
-        work.delete()
-        
+    if work.is_pinned:
+        work.is_pinned = False
+        work.save()
+    else:
+        pinned_count = Work.objects.filter(author=request.user, is_pinned=True).count()
+        if pinned_count >= 5:
+            messages.error(request, "Вы можете закрепить не более 5 работ. Открепите одну из старых.")
+        else:
+            work.is_pinned = True
+            work.save()
+            
     return redirect('profile')
