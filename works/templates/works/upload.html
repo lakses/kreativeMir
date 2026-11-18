@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Загрузить работу</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #f4f7f6; 
+            margin: 0; padding: 3rem 1rem; 
+            display: flex; justify-content: center; align-items: flex-start;
+            min-height: 100vh; box-sizing: border-box;
+        }
+
+        .upload-card { 
+            background: white; padding: 2.5rem; border-radius: 12px; 
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08); width: 100%; max-width: 600px; 
+        }
+
+        .back-link { display: inline-block; color: #007bff; text-decoration: none; font-size: 0.9rem; margin-bottom: 1.5rem; font-weight: 500; }
+        .back-link:hover { text-decoration: underline; }
+
+        h2 { margin-top: 0; margin-bottom: 1.5rem; color: #333; font-size: 1.6rem; }
+
+        form p { margin-bottom: 1.2rem; }
+        label { display: block; font-size: 0.95rem; color: #444; font-weight: 600; margin-bottom: 0.4rem; }
+
+        input[type="text"], textarea, input[type="file"] { 
+            width: 100%; padding: 0.75rem; box-sizing: border-box; 
+            border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; font-family: inherit;
+        }
+        textarea { resize: vertical; min-height: 100px; }
+        input[type="file"] { background: #f8f9fa; cursor: pointer; padding: 0.5rem; }
+        input:focus, textarea:focus { border-color: #007bff; outline: none; box-shadow: 0 0 0 3px rgba(0,123,255,0.1); }
+
+        /* --- Стили для выбора типа медиа --- */
+        .media-tabs {
+            display: flex; gap: 0.5rem; margin-bottom: 1.5rem;
+            background: #f8f9fa; padding: 0.4rem; border-radius: 8px; border: 1px solid #eee;
+        }
+
+        .media-tab {
+            flex: 1; text-align: center; padding: 0.6rem; cursor: pointer;
+            border-radius: 6px; font-weight: 500; color: #666; transition: all 0.2s; user-select: none;
+        }
+
+        .media-tab input[type="radio"] { display: none; }
+
+        .media-tab.active {
+            background: white; color: #007bff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); font-weight: 600;
+        }
+
+        .file-input-group { display: none; animation: fadeIn 0.3s; margin-bottom: 1.2rem; }
+        .file-input-group.active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+        #previewContainer { text-align: center; margin: 1.5rem 0; display: none; }
+        #previewContainer img, #previewContainer video { max-width: 100%; max-height: 300px; border-radius: 8px; border: 1px solid #ddd; }
+        #previewContainer audio { width: 100%; margin-top: 1rem; }
+
+        .btn-submit { 
+            width: 100%; padding: 0.9rem; background: #007bff; color: white; 
+            border: none; border-radius: 6px; cursor: pointer; font-size: 1.05rem; font-weight: 600;
+            margin-top: 1rem; transition: background 0.2s;
+        }
+        .btn-submit:hover { background: #0056b3; }
+
+        /* Подсказка для обложки */
+        .help-text { font-size: 0.8rem; color: #888; margin-top: 0.3rem; display: block; font-weight: normal; }
+    </style>
+</head>
+<body>
+
+    <div class="upload-card">
+        <a href="{% url 'profile' %}" class="back-link">← Вернуться в профиль</a>
+        
+        <h2>Загрузить новую работу</h2>
+        
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <p>
+                <label>Название:</label>
+                <input type="text" name="title" required placeholder="Например: Логотип для кофейни">
+            </p>
+            
+            <p>
+                <label>Описание:</label>
+                <textarea name="description" rows="4" placeholder="Расскажите о процессе создания или идее..."></textarea>
+            </p>
+
+            <!-- Выбор типа медиа -->
+            <label>Что вы загружаете?</label>
+            <div class="media-tabs">
+                <label class="media-tab active" id="tab-image">
+                    <input type="radio" name="media_type" value="image" checked onchange="switchTab('image')"> 🖼️ Картинка
+                </label>
+                <label class="media-tab" id="tab-video">
+                    <input type="radio" name="media_type" value="video" onchange="switchTab('video')"> 🎬 Видео
+                </label>
+                <label class="media-tab" id="tab-audio">
+                    <input type="radio" name="media_type" value="audio" onchange="switchTab('audio')"> 🎵 Аудио
+                </label>
+            </div>
+
+            <!-- Поля для загрузки -->
+            <div id="group-image" class="file-input-group active">
+                <label>Файл изображения:</label>
+                <input type="file" name="image" id="imageInput" accept="image/*">
+            </div>
+
+            <div id="group-video" class="file-input-group">
+                <label>Видеофайл:</label>
+                <input type="file" name="video" id="videoInput" accept="video/*">
+            </div>
+
+            <div id="group-audio" class="file-input-group">
+                <label>Аудиофайл:</label>
+                <input type="file" name="audio" id="audioInput" accept="audio/*">
+            </div>
+
+            <!-- НОВЫЙ БЛОК: Загрузка обложки (появляется только для видео и аудио) -->
+            <div id="group-thumbnail" class="file-input-group">
+                <label>Обложка (превью):</label>
+                <input type="file" name="thumbnail" id="thumbnailInput" accept="image/*">
+                <span class="help-text">Загрузите картинку, которая будет отображаться в сетке работ.</span>
+            </div>
+
+            <!-- Превью -->
+            <div id="previewContainer"></div>
+
+            <button type="submit" class="btn-submit">Отправить на модерацию</button>
+        </form>
+    </div>
+
+    <script>
+        function switchTab(type) {
+            // 1. Убираем активные классы
+            document.querySelectorAll('.media-tab').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.file-input-group').forEach(el => el.classList.remove('active'));
+            
+            // 2. Активируем нужный таб и поле
+            document.getElementById('tab-' + type).classList.add('active');
+            document.getElementById('group-' + type).classList.add('active');
+
+            // 3. Логика для Обложки
+            const thumbGroup = document.getElementById('group-thumbnail');
+            const thumbInput = document.getElementById('thumbnailInput');
+            
+            if (type === 'video' || type === 'audio') {
+                // Показываем обложку для видео и аудио
+                thumbGroup.classList.add('active');
+            } else {
+                // Прячем и очищаем для картинки
+                thumbGroup.classList.remove('active');
+                thumbInput.value = '';
+            }
+
+            // 4. Очищаем превью
+            document.getElementById('previewContainer').innerHTML = '';
+            document.getElementById('previewContainer').style.display = 'none';
+            
+            // 5. Очищаем значения невидимых инпутов
+            if(type !== 'image') document.getElementById('imageInput').value = '';
+            if(type !== 'video') document.getElementById('videoInput').value = '';
+            if(type !== 'audio') document.getElementById('audioInput').value = '';
+        }
+
+        function showPreview(input, type) {
+            const container = document.getElementById('previewContainer');
+            container.innerHTML = '';
+            
+            if (input.files && input.files[0]) {
+                const fileURL = URL.createObjectURL(input.files[0]);
+                container.style.display = 'block';
+                
+                if (type === 'image') {
+                    container.innerHTML = `<img src="${fileURL}" alt="Превью">`;
+                } else if (type === 'video') {
+                    container.innerHTML = `<video src="${fileURL}" controls></video>`;
+                } else if (type === 'audio') {
+                    container.innerHTML = `<audio src="${fileURL}" controls></audio>`;
+                }
+            } else {
+                container.style.display = 'none';
+            }
+        }
+
+        document.getElementById('imageInput').addEventListener('change', function() { showPreview(this, 'image'); });
+        document.getElementById('videoInput').addEventListener('change', function() { showPreview(this, 'video'); });
+        document.getElementById('audioInput').addEventListener('change', function() { showPreview(this, 'audio'); });
+        
+        // Если пользователь выбрал обложку, можно показать её (опционально)
+        document.getElementById('thumbnailInput').addEventListener('change', function() { 
+            // Можно добавить логику, чтобы показывать выбранную обложку поверх видео, 
+            // но пока оставим просто выбор файла, чтобы не усложнять.
+        });
+    </script>
+</body>
+</html>

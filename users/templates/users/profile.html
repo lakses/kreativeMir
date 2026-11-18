@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Профиль — {{ user.username }}</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 2rem 1rem; color: #333; }
+        .container { max-width: 900px; margin: 0 auto; }
+        .card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 2rem; }
+        
+        .header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1.5rem; }
+        .user-info { display: flex; align-items: center; gap: 1.5rem; }
+        .avatar { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .avatar-placeholder { display: flex; align-items: center; justify-content: center; background: #e9ecef; color: #adb5bd; font-size: 0.9rem; }
+        .user-name { margin: 0 0 0.3rem 0; font-size: 1.8rem; color: #222; }
+        .user-realname { margin: 0; color: #666; font-size: 1rem; }
+
+        /* СТИЛИ ДЛЯ ПЛАШЕК СТАТУСА */
+        .badges-container { margin-top: 0.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .badge { padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem; }
+        .badge-orders { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+        .badge-collab { background: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; }
+
+        .logout-btn { background: #fff; border: 1px solid #dc3545; color: #dc3545; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.2s; }
+        .logout-btn:hover { background: #dc3545; color: white; }
+
+        .stats { display: flex; gap: 1rem; margin-top: 2rem; flex-wrap: wrap; }
+        .stat { flex: 1; min-width: 120px; padding: 1rem; background: #f8f9fa; border-radius: 8px; font-size: 0.95rem; text-align: center; border: 1px solid #e9ecef; font-weight: 500; }
+
+        form p { margin-bottom: 1rem; text-align: left; }
+        form label { font-size: 0.9rem; color: #555; font-weight: 500; }
+        input[type="text"], input[type="email"], input[type="file"], input[type="url"] { width: 100%; padding: 0.75rem; margin-top: 0.4rem; box-sizing: border-box; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; }
+        input:focus { border-color: #28a745; outline: none; box-shadow: 0 0 0 3px rgba(40,167,69,0.1); }
+        textarea { width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 6px; font-family: inherit; font-size: 1rem; resize: vertical; box-sizing: border-box; }
+        textarea:focus { border-color: #28a745; outline: none; box-shadow: 0 0 0 3px rgba(40,167,69,0.1); }
+        
+        /* Стилизуем чекбоксы (галочки) в форме */
+        input[type="checkbox"] { width: auto; transform: scale(1.2); margin-right: 0.5rem; cursor: pointer; }
+
+        .btn-primary { padding: 0.7rem 1.5rem; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; font-weight: 500; transition: background 0.2s; }
+        .btn-primary:hover { background: #218838; }
+
+        .section-title { display: flex; justify-content: space-between; align-items: center; margin-top: 0; margin-bottom: 1.5rem; }
+        .btn-upload { background: #007bff; color: white; text-decoration: none; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.9rem; font-weight: 500; transition: background 0.2s; }
+        .btn-upload:hover { background: #0056b3; }
+
+        .works-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.5rem; }
+        .work-card { background: #fff; border: 1px solid #eee; border-radius: 10px; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s; }
+        .work-card:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,0.1); }
+        .work-card img { width: 100%; height: 200px; object-fit: cover; display: block; }
+        
+        .media-placeholder { display: flex; align-items: center; justify-content: center; height: 200px; font-size: 4rem; background: #f8f9fa; color: #ccc; }
+        
+        .work-info { padding: 1rem; text-align: center; }
+        .work-title { display: block; text-decoration: none; color: #333; font-weight: 600; margin-bottom: 0.5rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .work-title:hover { color: #007bff; }
+        .work-meta { font-size: 0.85rem; color: #888; }
+
+        .rejected-box { background: #fff5f5; border: 1px solid #ffcccc; padding: 1.5rem; border-radius: 10px; margin-bottom: 2rem; }
+        .rejected-title { color: #dc3545; margin-top: 0; margin-bottom: 1.5rem; }
+        .rejected-item { display: flex; gap: 1.5rem; margin-bottom: 1.5rem; border-bottom: 1px dashed #ffcccc; padding-bottom: 1.5rem; }
+        .rejected-item:last-child { margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
+        .rejected-img { width: 120px; height: 120px; object-fit: cover; border-radius: 8px; border: 2px solid #ffb3b3; }
+        .rejected-placeholder { width: 120px; height: 120px; border-radius: 8px; border: 2px solid #ffb3b3; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: #ccc; }
+        .btn-delete { background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500; }
+        .btn-delete:hover { background: #c82333; }
+
+        .edit-accordion { padding: 0; overflow: hidden; }
+        .edit-summary { padding: 1.5rem 2rem; font-size: 1.2rem; font-weight: 600; color: #444; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: #fff; transition: background 0.2s; user-select: none; }
+        .edit-summary:hover { background: #f8f9fa; }
+        .arrow { font-size: 0.9rem; color: #888; transition: transform 0.3s ease; }
+        .edit-content-wrapper { max-height: 0; overflow: hidden; opacity: 0; transition: max-height 0.4s ease-in-out, opacity 0.4s ease-in-out; background: #fff; }
+        .edit-content-inner { padding: 0 2rem 2rem 2rem; border-top: 1px solid #eee; }
+
+        /* Стили для контактов */
+        .bio-text { font-size: 1.05rem; line-height: 1.5; color: #444; margin-bottom: 1.5rem; }
+        .contacts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; }
+        .contact-item { background: #f8f9fa; padding: 1rem; border-radius: 8px; border: 1px solid #e9ecef; }
+        .contact-label { font-size: 0.8rem; color: #888; margin-bottom: 0.3rem; }
+        .contact-value { font-weight: 600; word-break: break-all; }
+        .contact-value a { color: #007bff; text-decoration: none; }
+        .contact-value a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- КАРТОЧКА 1: Шапка и Статистика -->
+    <div class="card">
+        <div class="header">
+            <div class="user-info">
+                {% if user.avatar %}
+                    <img src="{{ user.avatar.url }}" alt="Аватар" class="avatar">
+                {% else %}
+                    <div class="avatar avatar-placeholder">Нет фото</div>
+                {% endif %}
+                <div>
+                    <h1 class="user-name">{{ user.username }}</h1>
+                    <p class="user-realname">{{ user.first_name }} {{ user.last_name }}</p>
+                    
+                    <!-- ПЛАШКИ СТАТУСОВ -->
+                    <div class="badges-container">
+                        {% if user.available_for_orders %}
+                            <span class="badge badge-orders">🟢 Могу брать заказы</span>
+                        {% endif %}
+                        {% if user.open_to_collaboration %}
+                            <span class="badge badge-collab">🤝 Готов к сотрудничеству</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <form method="post" action="{% url 'logout' %}" style="margin: 0;">
+                {% csrf_token %}
+                <button type="submit" class="logout-btn">Выйти</button>
+            </form>
+        </div>
+
+        <div class="stats">
+            <div class="stat">❤️ Лайков: {{ profile_likes_count }}</div>
+            <div class="stat">✅ Работ: {{ approved_works.count }}</div>
+            <div class="stat">⏳ На модерации: {{ pending_works.count }}</div>
+            <div class="stat">💬 Контактов: {{ user.contact_count }}</div>
+        </div>
+    </div>
+
+    <!-- КАРТОЧКА 2: КОНТАКТЫ И ИНФОРМАЦИЯ (Возвращено наверх) -->
+    <div class="card">
+        <h2 style="margin-top: 0; font-size: 1.4rem; color: #444;">Контакты и информация</h2>
+        
+        {% if user.bio %}
+            <p class="bio-text">{{ user.bio|linebreaksbr }}</p>
+        {% else %}
+            <p style="color: #888; font-style: italic; margin-bottom: 1.5rem;">Описание профиля пока не заполнено.</p>
+        {% endif %}
+
+        <div class="contacts-grid">
+            {% if user.phone %}
+                <div class="contact-item">
+                    <div class="contact-label">Телефон</div>
+                    <div class="contact-value">{{ user.phone }}</div>
+                </div>
+            {% endif %}
+            
+            {% if user.contact_method %}
+                <div class="contact-item">
+                    <div class="contact-label">Способ связи</div>
+                    <div class="contact-value">{{ user.contact_method }}</div>
+                </div>
+            {% endif %}
+            
+            {% if user.github_url %}
+                <div class="contact-item">
+                    <div class="contact-label">GitHub</div>
+                    <div class="contact-value"><a href="{{ user.github_url }}" target="_blank">{{ user.github_url }}</a></div>
+                </div>
+            {% endif %}
+            
+            {% if user.website_url %}
+                <div class="contact-item">
+                    <div class="contact-label">Сайт</div>
+                    <div class="contact-value"><a href="{{ user.website_url }}" target="_blank">{{ user.website_url }}</a></div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- КАРТОЧКА 3: Редактирование (Выпадающая) -->
+    <div class="card edit-accordion">
+        <div class="edit-summary" onclick="toggleEditForm()">
+            <span>⚙️ Редактировать профиль</span>
+            <span class="arrow" id="editArrow">▼</span>
+        </div>
+        
+        <div class="edit-content-wrapper" id="editContentWrapper">
+            <div class="edit-content-inner">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button type="submit" class="btn-primary">Сохранить изменения</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- КАРТОЧКА 4: РАБОТЫ -->
+    <div class="card">
+        <div class="section-title">
+            <h2 style="margin: 0; font-size: 1.4rem; color: #444;">Мои работы</h2>
+            <a href="{% url 'upload_work' %}" class="btn-upload">+ Загрузить новую</a>
+        </div>
+
+        <!-- Отклоненные работы -->
+        {% if rejected_works %}
+            <div class="rejected-box">
+                <h3 class="rejected-title">Отклоненные работы:</h3>
+                
+                {% for work in rejected_works %}
+                    <div class="rejected-item">
+                        {% if work.thumbnail %}
+                            <img src="{{ work.thumbnail.url }}" alt="{{ work.title }}" class="rejected-img">
+                        {% elif work.image %}
+                            <img src="{{ work.image.url }}" alt="{{ work.title }}" class="rejected-img">
+                        {% elif work.video %}
+                            <div class="rejected-placeholder">🎬</div>
+                        {% elif work.audio %}
+                            <div class="rejected-placeholder">🎵</div>
+                        {% endif %}
+                        
+                        <div style="flex-grow: 1;">
+                            <b style="font-size: 1.1rem; color: #333;">{{ work.title }}</b>
+                            <div style="color: #dc3545; margin-top: 0.5rem; font-size: 0.95rem; background: #fff; padding: 0.5rem; border-radius: 4px; border: 1px solid #ffebeb;">
+                                <b>Причина:</b> {{ work.moderator_feedback|default:"Причина не указана." }}
+                            </div>
+                            
+                            <div style="display: flex; align-items: center; gap: 1rem; margin-top: 1rem;">
+                                <form method="post" action="{% url 'delete_work' work.pk %}" style="margin: 0;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-delete" onclick="return confirm('Точно удалить эту работу?');">
+                                        🗑️ Удалить
+                                    </button>
+                                </form>
+                                <span style="font-size: 0.8rem; color: #888;">(Автоудаление через 7 дней)</span>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Одобренные работы -->
+        {% if approved_works %}
+            <div class="works-grid">
+                {% for work in approved_works %}
+                    <div class="work-card">
+                        <a href="{% url 'work_detail' work.pk %}">
+                            {% if work.thumbnail %}
+                                <img src="{{ work.thumbnail.url }}" alt="{{ work.title }}">
+                            {% elif work.image %}
+                                <img src="{{ work.image.url }}" alt="{{ work.title }}">
+                            {% elif work.video %}
+                                <div class="media-placeholder">🎬</div>
+                            {% elif work.audio %}
+                                <div class="media-placeholder">🎵</div>
+                            {% endif %}
+                        </a>
+                        <div class="work-info">
+                            <a href="{% url 'work_detail' work.pk %}" class="work-title">{{ work.title }}</a>
+                            
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem;">
+                                <div class="work-meta">
+                                    ❤️ {{ work.likes.count }} &nbsp;|&nbsp; 💬 {{ work.comments.count }}
+                                </div>
+                                <form method="post" action="{% url 'delete_work' work.pk %}" style="margin: 0;">
+                                    {% csrf_token %}
+                                    <button type="submit" style="background: none; border: none; cursor: pointer; font-size: 1.1rem; padding: 0; opacity: 0.6; transition: opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'" onclick="return confirm('Удалить работу?');" title="Удалить">
+                                        🗑️
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: 2rem; background: #f8f9fa; border-radius: 8px; color: #888;">
+                У вас пока нет одобренных работ. Загрузите первую!
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+
+<script>
+    function toggleEditForm() {
+        const wrapper = document.getElementById('editContentWrapper');
+        const arrow = document.getElementById('editArrow');
+        
+        if (!wrapper.style.maxHeight || wrapper.style.maxHeight === '0px') {
+            wrapper.style.maxHeight = wrapper.scrollHeight + 'px';
+            wrapper.style.opacity = '1';
+            arrow.style.transform = 'rotate(180deg)';
+        } else {
+            wrapper.style.maxHeight = wrapper.scrollHeight + 'px';
+            requestAnimationFrame(() => {
+                wrapper.style.maxHeight = '0px';
+                wrapper.style.opacity = '0';
+            });
+            arrow.style.transform = 'rotate(0deg)';
+        }
+    }
+
+    window.addEventListener('resize', () => {
+        const wrapper = document.getElementById('editContentWrapper');
+        if (wrapper.style.maxHeight && wrapper.style.maxHeight !== '0px') {
+            wrapper.style.maxHeight = wrapper.scrollHeight + 'px';
+        }
+    });
+</script>
+</body>
+</html>

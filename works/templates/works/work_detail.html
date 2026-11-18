@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ work.title }}</title>
+    <style>
+        /* Общий фон страницы */
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #f4f7f6; 
+            margin: 0; 
+            padding: 2rem 1rem; 
+            color: #333;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        /* Главный контейнер */
+        .container { 
+            width: 100%; 
+            max-width: 1100px; 
+        }
+
+        /* Ссылка "Назад" */
+        .back-link {
+            display: inline-block;
+            color: #007bff;
+            text-decoration: none;
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .back-link:hover { color: #0056b3; text-decoration: underline; }
+
+        /* Сетка из двух колонок (Insta-style) */
+        .post-layout {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr; /* Левая колонка шире */
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        /* Общие стили для карточек */
+        .card { 
+            background: white; 
+            border-radius: 12px; 
+            box-shadow: 0 8px 24px rgba(0,0,0,0.06); 
+            overflow: hidden;
+        }
+
+        /* --- ЛЕВАЯ КОЛОНКА --- */
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .media-container {
+            background: #111; /* Темный фон для контраста картинок/видео */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+            max-height: 70vh;
+            overflow: hidden;
+        }
+
+        .media-container img, 
+        .media-container video { 
+            width: 100%; 
+            max-height: 70vh; 
+            object-fit: contain; /* Картинка не обрезается, вписывается целиком */
+            display: block;
+        }
+
+        .media-container .audio-wrapper {
+            background: #f8f9fa;
+            width: 100%;
+            padding: 3rem 1rem;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .media-container .audio-wrapper img {
+            max-width: 250px;
+            max-height: 250px;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .post-info {
+            padding: 1.5rem;
+        }
+
+        .post-title { margin: 0 0 0.5rem 0; font-size: 1.5rem; color: #222; }
+        .post-author { color: #666; font-size: 0.95rem; margin-bottom: 1.5rem; }
+        .post-author b { color: #333; }
+
+        /* Кнопка лайка */
+        .btn-like { 
+            padding: 0.6rem 1.2rem; 
+            border: 1px solid #ddd; 
+            border-radius: 20px; 
+            cursor: pointer; 
+            font-size: 1rem; 
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+        }
+        .btn-like-inactive { background: #f8f9fa; color: #555; }
+        .btn-like-inactive:hover { background: #e9ecef; color: #333; }
+        .btn-like-active { background: #ffe3e3; color: #dc3545; border-color: #ffb3b3; }
+        .btn-like-active:hover { background: #ffcccc; }
+
+        /* --- ПРАВАЯ КОЛОНКА (Комментарии) --- */
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 120px); /* Фиксируем высоту, чтобы скроллились только комменты */
+            max-height: 800px;
+            position: sticky;
+            top: 2rem;
+        }
+
+        .description-section {
+            padding: 1.5rem;
+            border-bottom: 1px solid #eee;
+            background: #fafafa;
+            flex-shrink: 0; /* Не сжимается */
+        }
+
+        .description-text { font-size: 0.95rem; line-height: 1.5; color: #444; margin: 0; }
+
+        .comments-section {
+            flex-grow: 1; /* Занимает всё свободное место */
+            overflow-y: auto; /* Включает скролл, если комментов много */
+            padding: 1.5rem;
+        }
+
+        .comment-item { 
+            display: flex; 
+            gap: 1rem; 
+            margin-bottom: 1.5rem; 
+            align-items: flex-start; 
+        }
+
+        .comment-avatar {
+            width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid #ddd;
+        }
+
+        .comment-avatar-placeholder {
+            width: 40px; height: 40px; border-radius: 50%; background: #6c757d; color: white; 
+            display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.1rem;
+        }
+
+        .comment-content { flex: 1; }
+        .comment-author { font-size: 0.9rem; font-weight: 600; color: #333; margin-right: 0.5rem; }
+        .comment-date { color: #aaa; font-size: 0.75rem; }
+        .comment-text { font-size: 0.95rem; color: #444; line-height: 1.4; margin-top: 0.2rem; }
+
+        /* Форма добавления */
+        .comment-form-area {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid #eee;
+            background: #fff;
+            flex-shrink: 0;
+        }
+
+        .comment-form-area form {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .comment-form-area textarea {
+            flex-grow: 1;
+            padding: 0.8rem;
+            border: 1px solid #ccc;
+            border-radius: 20px; /* Округлое поле как в Инсте */
+            font-family: inherit;
+            font-size: 0.95rem;
+            resize: none;
+            height: 44px; /* Высота в одну строку */
+            box-sizing: border-box;
+        }
+        .comment-form-area textarea:focus {
+            border-color: #007bff; outline: none;
+        }
+
+        .btn-send {
+            background: #007bff; color: white; border: none; border-radius: 20px;
+            padding: 0 1.2rem; font-weight: 600; cursor: pointer; transition: background 0.2s;
+        }
+        .btn-send:hover { background: #0056b3; }
+
+        /* Адаптивность: на телефонах колонки станут друг под другом */
+        @media (max-width: 850px) {
+            .post-layout { grid-template-columns: 1fr; }
+            .right-panel { height: auto; max-height: none; position: static; }
+            .comments-section { max-height: 400px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <a href="{% url 'profile' %}" class="back-link">← Вернуться в профиль</a>
+
+        <div class="post-layout">
+            
+            <!-- ЛЕВАЯ ПАНЕЛЬ: Медиа и Инфо -->
+            <div class="card left-panel">
+                <div class="media-container">
+                    {% if work.image %}
+                        <img src="{{ work.image.url }}" alt="{{ work.title }}">
+                    
+                    {% elif work.video %}
+                        <video src="{{ work.video.url }}" controls 
+                               {% if work.thumbnail %}poster="{{ work.thumbnail.url }}"{% endif %}>
+                        </video>
+                    
+                    {% elif work.audio %}
+                        <div class="audio-wrapper">
+                            {% if work.thumbnail %}
+                                <img src="{{ work.thumbnail.url }}" alt="{{ work.title }}">
+                            {% else %}
+                                <div style="font-size: 5rem; margin-bottom: 1rem;">🎵</div>
+                            {% endif %}
+                            <audio src="{{ work.audio.url }}" controls style="width: 100%; max-width: 400px;"></audio>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="post-info">
+                    <h1 class="post-title">{{ work.title }}</h1>
+                    <div class="post-author">Автор: <b>{{ work.author.username }}</b></div>
+                    
+                    <form method="post" style="margin: 0;">
+                        {% csrf_token %}
+                        <button type="submit" name="like" class="btn-like {% if is_liked %}btn-like-active{% else %}btn-like-inactive{% endif %}">
+                            {% if is_liked %}
+                                ❤️ Вам нравится ({{ work.likes.count }})
+                            {% else %}
+                                🤍 Нравится ({{ work.likes.count }})
+                            {% endif %}
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ПРАВАЯ ПАНЕЛЬ: Комментарии -->
+            <div class="card right-panel">
+                
+                <!-- Описание работы -->
+                {% if work.description %}
+                    <div class="description-section">
+                        <p class="description-text">{{ work.description|linebreaksbr }}</p>
+                    </div>
+                {% endif %}
+
+                <!-- Список комментариев (со скроллом) -->
+                <div class="comments-section">
+                    {% for comment in comments %}
+                        <div class="comment-item">
+                            <div>
+                                {% if comment.author.avatar %}
+                                    <img src="{{ comment.author.avatar.url }}" alt="Аватар" class="comment-avatar">
+                                {% else %}
+                                    <div class="comment-avatar-placeholder">
+                                        {{ comment.author.username|first|upper }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="comment-content">
+                                <div>
+                                    <span class="comment-author">{{ comment.author.username }}</span>
+                                    <span class="comment-date">{{ comment.created_at|date:"d.m.Y H:i" }}</span>
+                                </div>
+                                <div class="comment-text">
+                                    {{ comment.text|linebreaksbr }}
+                                </div>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div style="text-align: center; color: #888; margin-top: 2rem;">
+                            Пока нет комментариев.<br>Будь первым!
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Форма добавления комментария -->
+                <div class="comment-form-area">
+                    <form method="post">
+                        {% csrf_token %}
+                        <textarea name="text" placeholder="Добавьте комментарий..." required></textarea>
+                        <button type="submit" name="comment" class="btn-send">➤</button>
+                    </form>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>
