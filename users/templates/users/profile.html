@@ -1,494 +1,665 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <title>Профиль — {{ user.username }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&display=swap" rel="stylesheet">
+    
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 2rem 1rem; color: #333; }
-        .container { max-width: 900px; margin: 0 auto; }
-        .card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 2rem; }
-        
-        .header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1.5rem; }
-        .user-info { display: flex; align-items: center; gap: 1.5rem; }
-        .avatar { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .avatar-placeholder { display: flex; align-items: center; justify-content: center; background: #e9ecef; color: #adb5bd; font-size: 0.9rem; }
-        .user-name { margin: 0 0 0.3rem 0; font-size: 1.8rem; color: #222; }
-        .user-realname { margin: 0; color: #666; font-size: 1rem; }
-
-        /* СТИЛИ ДЛЯ ПЛАШЕК СТАТУСА */
-        .badges-container { margin-top: 0.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
-        .badge { padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem; }
-        .badge-orders { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
-        .badge-collab { background: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; }
-
-        .logout-btn { background: #fff; border: 1px solid #dc3545; color: #dc3545; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.2s; }
-        .logout-btn:hover { background: #dc3545; color: white; }
-
-        .stats { display: flex; gap: 1rem; margin-top: 2rem; flex-wrap: wrap; }
-        .stat { flex: 1; min-width: 120px; padding: 1rem; background: #f8f9fa; border-radius: 8px; font-size: 0.95rem; text-align: center; border: 1px solid #e9ecef; font-weight: 500; }
-
-        form p { margin-bottom: 1rem; text-align: left; }
-        form label { font-size: 0.9rem; color: #555; font-weight: 500; }
-        input[type="text"], input[type="email"], input[type="file"], input[type="url"] { width: 100%; padding: 0.75rem; margin-top: 0.4rem; box-sizing: border-box; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; }
-        input:focus { border-color: #28a745; outline: none; box-shadow: 0 0 0 3px rgba(40,167,69,0.1); }
-        textarea { width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 6px; font-family: inherit; font-size: 1rem; resize: vertical; box-sizing: border-box; }
-        textarea:focus { border-color: #28a745; outline: none; box-shadow: 0 0 0 3px rgba(40,167,69,0.1); }
-        
-        /* Стилизуем чекбоксы (галочки) в форме */
-        input[type="checkbox"] { width: auto; transform: scale(1.2); margin-right: 0.5rem; cursor: pointer; }
-
-        .btn-primary { padding: 0.7rem 1.5rem; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; font-weight: 500; transition: background 0.2s; }
-        .btn-primary:hover { background: #218838; }
-
-        .section-title { display: flex; justify-content: space-between; align-items: center; margin-top: 0; margin-bottom: 1.5rem; }
-        .btn-upload { background: #007bff; color: white; text-decoration: none; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.9rem; font-weight: 500; transition: background 0.2s; }
-        .btn-upload:hover { background: #0056b3; }
-
-        .works-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.5rem; }
-        .work-card { background: #fff; border: 1px solid #eee; border-radius: 10px; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s; }
-        .work-card:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,0.1); }
-        .work-card img { width: 100%; height: 200px; object-fit: cover; display: block; }
-        
-        .media-placeholder { display: flex; align-items: center; justify-content: center; height: 200px; font-size: 4rem; background: #f8f9fa; color: #ccc; }
-        
-        .work-info { padding: 1rem; text-align: center; }
-        .work-title { display: block; text-decoration: none; color: #333; font-weight: 600; margin-bottom: 0.5rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .work-title:hover { color: #007bff; }
-        .work-meta { font-size: 0.85rem; color: #888; }
-
-        .rejected-box { background: #fff5f5; border: 1px solid #ffcccc; padding: 1.5rem; border-radius: 10px; margin-bottom: 2rem; }
-        .rejected-title { color: #dc3545; margin-top: 0; margin-bottom: 1.5rem; }
-        .rejected-item { display: flex; gap: 1.5rem; margin-bottom: 1.5rem; border-bottom: 1px dashed #ffcccc; padding-bottom: 1.5rem; }
-        .rejected-item:last-child { margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
-        .rejected-img { width: 120px; height: 120px; object-fit: cover; border-radius: 8px; border: 2px solid #ffb3b3; }
-        .rejected-placeholder { width: 120px; height: 120px; border-radius: 8px; border: 2px solid #ffb3b3; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: #ccc; }
-        .btn-delete { background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500; }
-        .btn-delete:hover { background: #c82333; }
-
-        .edit-accordion { padding: 0; overflow: hidden; }
-        .edit-summary { padding: 1.5rem 2rem; font-size: 1.2rem; font-weight: 600; color: #444; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: #fff; transition: background 0.2s; user-select: none; }
-        .edit-summary:hover { background: #f8f9fa; }
-        .arrow { font-size: 0.9rem; color: #888; transition: transform 0.3s ease; }
-        .edit-content-wrapper { max-height: 0; overflow: hidden; opacity: 0; transition: max-height 0.4s ease-in-out, opacity 0.4s ease-in-out; background: #fff; }
-        .edit-content-inner { padding: 0 2rem 2rem 2rem; border-top: 1px solid #eee; }
-
-        /* Стили для контактов */
-        .bio-text { font-size: 1.05rem; line-height: 1.5; color: #444; margin-bottom: 1.5rem; }
-        .contacts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; }
-        .contact-item { background: #f8f9fa; padding: 1rem; border-radius: 8px; border: 1px solid #e9ecef; }
-        .contact-label { font-size: 0.8rem; color: #888; margin-bottom: 0.3rem; }
-        .contact-value { font-weight: 600; word-break: break-all; }
-        .contact-value a { color: #007bff; text-decoration: none; }
-        .contact-value a:hover { text-decoration: underline; }
-                /* Стили для закрепленных работ */
-        .work-card.pinned { border: 2px solid #ffca28; box-shadow: 0 4px 12px rgba(255, 202, 40, 0.2); }
-        .pin-btn { background: none; border: none; cursor: pointer; font-size: 1.1rem; padding: 0; opacity: 0.5; transition: opacity 0.2s, transform 0.2s; }
-        .pin-btn:hover { opacity: 1; transform: scale(1.1); }
-        .pin-btn.is-pinned { opacity: 1; }
-                /* Стили для тегов */
-        .user-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.8rem; }
-        .user-tag { background: #e9ecef; color: #495057; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.85rem; font-weight: 500; }
-        
-        /* Стилизуем чекбоксы в форме, чтобы они шли в ряд, а не столбиком */
-        .field-tags ul { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 0.5rem; }
-        .field-tags li { margin: 0; display: flex; align-items: center; gap: 0.3rem; background: #f8f9fa; padding: 0.4rem 0.8rem; border-radius: 6px; border: 1px solid #ddd; }
-        .field-tags li label { margin: 0; cursor: pointer; font-size: 0.9rem; }
-        .field-tags input[type="checkbox"] { margin: 0; cursor: pointer; }
-        /* --- СТИЛИ ДЛЯ ВЕРХНЕЙ ПАНЕЛИ --- */
+        /* --- ОБЩИЕ СТИЛИ И ФОН --- */
         body { 
-            /* Меняем старый padding: 2rem 1rem, чтобы шапка была вплотную к краям */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: url("/media/static/images/fon.jpg") no-repeat center center fixed; 
+            background-size: cover;
             margin: 0; 
             padding: 0; 
+            color: #333;
+            min-height: 100vh;
         }
 
-        /* Переносим отступы в контейнер */
-        .container { 
-            max-width: 900px; 
-            margin: 2rem auto; 
-            padding: 0 1rem; 
-        }
-
-        .top-nav {
-            position: fixed; /* Фиксируем вверху */
+        /* --- ВЕРХНЯЯ ПАНЕЛЬ (СИНЯЯ + ЗЕЛЕНАЯ) --- */
+        .header-wrapper {
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
-            background-color: #ffffff;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
             z-index: 1000;
-            transition: transform 0.3s ease; /* Плавное выезжание */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transition: top 0.3s ease-in-out;
         }
-        /* Класс для скрытия панели */
-        .top-nav.hidden-nav {
-            transform: translateY(-100%);
+
+        .header-wrapper.hidden-nav {
+            top: -150px;
         }
-        .top-nav-container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 0 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+
+        /* Синяя полоса */
+        .top-nav-blue {
+            background: linear-gradient(to right, #5b86e5, #36d1dc);
             height: 60px;
+            display: flex;
+            align-items: center;
+            padding: 0 2rem;
+            box-sizing: border-box;
         }
 
         .brand {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: #222;
+            font-family: 'Caveat', cursive;
+            font-size: 2.2rem;
+            color: #fff;
             text-decoration: none;
+            margin-right: 2rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
         }
 
-        .brand:hover { color: #007bff; }
+        .top-search-form {
+            flex-grow: 1;
+            max-width: 500px;
+        }
+
+        .top-search-form input {
+            width: 100%;
+            padding: 0.6rem 1.2rem;
+            border-radius: 20px;
+            border: none;
+            outline: none;
+            font-size: 0.95rem;
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        /* Зеленая полоса (Меню) */
+        .top-nav-green {
+            background-color: #28a745;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            padding: 0 2rem;
+            box-sizing: border-box;
+        }
 
         .nav-links {
             display: flex;
-            gap: 1.2rem;
             align-items: center;
+            gap: 0.6rem;
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
         }
 
         .nav-links a {
-            color: #444;
+            color: #28a745;
+            background: #fff;
             text-decoration: none;
-            font-weight: 500;
-            font-size: 0.95rem;
-            transition: color 0.2s;
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: all 0.2s;
+            white-space: nowrap;
+            border: 1px solid #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
-        .nav-links a:hover { color: #007bff; }
+        .nav-links a:hover {
+            background: #f8f9fa;
+            color: #1e7e34;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .nav-links a.active {
+            background: #155724;
+            color: #fff;
+            border-color: #155724;
+        }
+
+        .nav-auth {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+        
+        .btn-nav-upload { box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 
         .nav-logout {
-            background: none;
-            border: none;
+            background: #fff;
+            border: 1px solid #fff;
             color: #dc3545;
-            font-weight: 500;
-            font-size: 0.95rem;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
             cursor: pointer;
-            font-family: inherit;
-            padding: 0;
-            transition: color 0.2s;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
-        .nav-logout:hover { color: #a71d2a; }
+        .nav-logout:hover {
+            background: #fff5f5;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
 
+        /* --- ОБЕРТКА ДЛЯ ЦЕНТРИРОВАНИЯ --- */
+        .layout-wrapper {
+            max-width: 1100px;
+            margin: 140px auto 20px auto; 
+            display: flex;
+            gap: 20px;
+            padding: 0 20px;
+            align-items: flex-start;
+            justify-content: center; 
+        }
 
+        .layout-wrapper.layout-own {
+            margin-top: 80px;
+        }
+
+        /* --- БОКОВОЕ МЕНЮ --- */
+        .sidebar {
+            position: sticky; 
+            top: 90px;
+            width: 240px;
+            flex-shrink: 0;
+            height: calc(100vh - 110px);
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+
+        .sidebar-profile {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #333;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .sidebar-avatar {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #e9ecef;
+            margin-bottom: 0.8rem;
+            border: 2px solid #5b86e5;
+        }
+
+        .sidebar-username { font-weight: 600; font-size: 1.1rem; }
+        .sidebar-email { font-size: 0.8rem; color: #888; }
+
+        .nav-menu { display: flex; flex-direction: column; gap: 0.5rem; }
+
+        .nav-menu a {
+            display: block;
+            padding: 0.7rem 1rem;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #444;
+            border: 1px solid #ddd;
+            font-weight: 500;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+        }
+
+        .nav-menu a:hover { background: #f8f9fa; border-color: #ccc; }
+        .nav-menu a.active { background: #fff5d1; border-color: #ffe48a; color: #333; font-weight: 600; }
+
+        /* --- ЦЕНТРАЛЬНАЯ ЧАСТЬ --- */
+        .main-content {
+            flex-grow: 1;
+            max-width: 850px;
+            width: 100%;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            padding: 2rem;
+            box-sizing: border-box; 
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .main-avatar {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #fff;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .avatar-placeholder { display: flex; align-items: center; justify-content: center; background: #e9ecef; color: #adb5bd; font-size: 0.9rem; }
+
+        .profile-title { margin: 0 0 0.2rem 0; font-size: 1.8rem; color: #222; }
+        .profile-realname { margin: 0 0 0.5rem 0; color: #666; font-size: 0.95rem; }
+
+        .badges-container { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.8rem; }
+        .badge { padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+        .badge-orders { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+        .badge-collab { background: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; }
+
+        .user-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+        .user-tag { background: #e9ecef; color: #495057; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.8rem; font-weight: 500; }
+
+        .stats-row {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.9rem;
+            color: #555;
+            font-weight: 500;
+            margin-top: 0.5rem;
+        }
+
+        .section-divider {
+            border-top: 1px solid #eee;
+            margin: 1.5rem 0;
+        }
+
+        .bio-contacts-block { margin-bottom: 0.5rem; }
+        .bio-text { font-size: 1rem; line-height: 1.5; color: #444; margin-bottom: 1rem; }
+        .contacts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
+        .contact-item { background: #f8f9fa; padding: 0.8rem; border-radius: 8px; border: 1px solid #e9ecef; }
+        .contact-label { font-size: 0.75rem; color: #888; margin-bottom: 0.2rem; text-transform: uppercase; font-weight: 600; }
+        .contact-value { font-weight: 600; font-size: 0.9rem; word-break: break-all; }
+        .contact-value a { color: #007bff; text-decoration: none; }
+
+        .btn-main-action {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            text-align: left;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #333;
+            cursor: pointer;
+            text-decoration: none;
+            margin-bottom: 0.8rem;
+            transition: background 0.2s;
+            box-sizing: border-box;
+        }
+        .btn-main-action:hover { background: #f8f9fa; }
+
+        .works-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1.2rem; }
+        .work-card { background: #fff; border: 1px solid #eee; border-radius: 10px; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s; position: relative; }
+        .work-card:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,0.1); }
+        .work-card img { width: 100%; height: 150px; object-fit: cover; display: block; }
+        .work-info { padding: 0.8rem; text-align: center; }
+        .work-title { display: block; text-decoration: none; color: #333; font-weight: 600; margin-bottom: 0.3rem; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .work-meta { font-size: 0.8rem; color: #888; }
+
+        .edit-form-container {
+            display: none;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-top: 1rem;
+            border: 1px solid #eee;
+        }
+        .edit-form-container.active { display: block; }
+        
+        form p { margin-bottom: 1rem; text-align: left; }
+        form label { font-size: 0.9rem; color: #555; font-weight: 500; }
+        input[type="text"], input[type="email"], input[type="file"], input[type="url"], textarea { width: 100%; padding: 0.75rem; margin-top: 0.4rem; box-sizing: border-box; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95rem; font-family: inherit; }
+        input:focus, textarea:focus { border-color: #28a745; outline: none; }
+        .btn-primary { padding: 0.7rem 1.5rem; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; font-weight: 500; }
+        
+        @media (max-width: 900px) {
+            .nav-links { overflow-x: auto; padding-bottom: 5px; }
+            .nav-auth { display: none; }
+            .layout-wrapper { flex-direction: column; align-items: center; }
+            .sidebar { display: none; }
+        }
     </style>
 </head>
 <body>
-<!-- ВЕРХНЯЯ ПАНЕЛЬ НАВИГАЦИИ -->
-<header class="top-nav">
-    <div class="top-nav-container">
-        <a href="{% url 'profile' %}" class="brand">🎨 КреативМир</a>
-        <nav class="nav-links">
-            <a href="{% url 'profile' %}">👤 Мой профиль</a>
-            <a href="{% url 'creators_list' %}">🎨 Все креаторы</a>
-            <a href="{% url 'upload_work' %}">📤 Загрузить работу</a>
-        </nav>
-    </div>
-</header>
 
-<div class="container">
-`   {% if messages %}
-        {% for message in messages %}
-            <div style="background: #f8d7da; color: #721c24; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border: 1px solid #f5c6cb; text-align: center; font-weight: 500;">
-                ⚠️ {{ message }}
+    <!-- ВЕРХНЯЯ ПАНЕЛЬ -->
+    <header class="header-wrapper" id="mainHeader">
+        <div class="top-nav-blue">
+            <a href="{% url 'profile' %}" class="brand">КреативМир</a>
+            <form method="GET" action="{% url 'creators_list' %}" class="top-search-form">
+                <input type="text" name="q" placeholder="Поиск авторов по нику..." value="{{ request.GET.q|default:'' }}">
+            </form>
+        </div>
+        
+        <!-- Зеленая полоса (Для чужого профиля) -->
+        {% if not is_own_profile %}
+        <div class="top-nav-green">
+            <div class="nav-links">
+                <a href="{% url 'profile' %}">Главная</a>
+                <a href="#">Сообщество</a>
+                <a href="#">Партнерство</a>
+                <a href="{% url 'creators_list' %}">Авторы</a>
+                <a href="#">События</a>
+                <!-- Ссылка на чат с красным фоном при наличии непрочитанных -->
+                <a href="{% url 'chat_list' %}" style="{% if unread_messages_count > 0 %}background: #dc3545 !important; color: white !important; border-color: #dc3545;{% endif %}">
+                    Чат {% if unread_messages_count > 0 %}<span style="background:white; color:#dc3545; border-radius:50%; padding:0 6px; margin-left:5px; font-size:0.8rem; font-weight:bold;">{{ unread_messages_count }}</span>{% endif %}
+                </a>
+                
+                <div class="nav-auth">
+                    <a href="{% url 'upload_work' %}" class="btn-nav-upload">+ Загрузить</a>
+                    <form method="post" action="{% url 'logout' %}" style="margin: 0;">
+                        {% csrf_token %}
+                        <button type="submit" class="nav-logout">Выйти</button>
+                    </form>
+                </div>
             </div>
-        {% endfor %}
-    {% endif %}
-    <!-- КАРТОЧКА 1: Шапка и Статистика -->
-    <div class="card">
-        <div class="header">
-            <div class="user-info">
-                {% if user.avatar %}
-                    <img src="{{ user.avatar.url }}" alt="Аватар" class="avatar">
+        </div>
+        {% endif %}
+    </header>
+
+    <div class="layout-wrapper {% if is_own_profile %}layout-own{% endif %}">
+        
+        {% if is_own_profile %}
+        <aside class="sidebar">
+            <a href="{% url 'profile' %}" class="sidebar-profile">
+                {% if request.user.avatar %}
+                    <img src="{{ request.user.avatar.url }}" alt="Аватар" class="sidebar-avatar">
                 {% else %}
-                    <div class="avatar avatar-placeholder">Нет фото</div>
+                    <div class="sidebar-avatar avatar-placeholder">Нет фото</div>
                 {% endif %}
-                                <div>
-                    <h1 class="user-name">{{ user.username }}</h1>
-                    {% if not is_own_profile %}
-                        <a href="{% url 'creators_list' %}" style="font-size: 0.85rem; color: #007bff; text-decoration: none;">←обратно</a>
+                <div class="sidebar-username">{{ request.user.username }}</div>
+                <div class="sidebar-email">{{ request.user.email }}</div>
+            </a>
+
+            <nav class="nav-menu">
+                <a href="{% url 'profile' %}" class="active">Главная</a>
+                <a href="#">Сообщество</a>
+                <a href="#">Партнерство</a>
+                <a href="{% url 'creators_list' %}">Авторы</a>
+                <a href="#">События</a>
+                <!-- Ссылка на чат в сайдбаре -->
+                <a href="{% url 'chat_list' %}" style="{% if unread_messages_count > 0 %}background: #dc3545; color: white; border-color: #dc3545;{% endif %}">
+                    Чат {% if unread_messages_count > 0 %}<span style="background:white; color:#dc3545; border-radius:50%; padding:0 6px; margin-left:5px; font-size:0.8rem; font-weight:bold;">{{ unread_messages_count }}</span>{% endif %}
+                </a>
+            </nav>
+        </aside>
+        {% endif %}
+
+        <main class="main-content">
+            
+            {% if messages %}
+                {% for message in messages %}
+                    <div style="background: #f8d7da; color: #721c24; padding: 1rem; border-radius: 8px; border: 1px solid #f5c6cb; text-align: center; font-weight: 500; margin-bottom: 1rem;">
+                        ⚠️ {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <div class="card">
+                <div class="profile-header">
+                    {% if user.avatar %}
+                        <img src="{{ user.avatar.url }}" alt="Аватар" class="main-avatar">
+                    {% else %}
+                        <div class="main-avatar avatar-placeholder">Нет фото</div>
                     {% endif %}
-                    <p class="user-realname">{{ user.first_name }} {{ user.last_name }}</p>
                     
-                    <!-- ПЛАШКИ СТАТУСОВ -->
-                    <div class="badges-container">
-                        {% if user.available_for_orders %}
-                            <span class="badge badge-orders">🟢 Могу брать заказы</span>
+                    <div>
+                        <h1 class="profile-title">{{ user.username }}</h1>
+                        <p class="profile-realname">{{ user.first_name }} {{ user.last_name }}</p>
+                        
+                        <div class="stats-row">
+                            <span>❤️ {{ profile_likes_count }} лайков</span>
+                            <span>✅ {{ approved_works.count }} работ</span>
+                            {% if is_own_profile %}
+                                <span>⏳ {{ pending_works.count }} на модерации</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="badges-container" style="margin-top: 0.8rem;">
+                            {% if user.available_for_orders %}
+                                <span class="badge badge-orders">🟢 Могу брать заказы</span>
+                            {% endif %}
+                            {% if user.open_to_collaboration %}
+                                <span class="badge badge-collab">🤝 Готов к сотрудничеству</span>
+                            {% endif %}
+                        </div>
+
+                        {% if user.tags.all %}
+                            <div class="user-tags" style="margin-top: 0.5rem;">
+                                {% for tag in user.tags.all %}
+                                    <span class="user-tag">#{{ tag.name }}</span>
+                                {% endfor %}
+                            </div>
                         {% endif %}
-                        {% if user.open_to_collaboration %}
-                            <span class="badge badge-collab">🤝 Готов к сотрудничеству</span>
+                    </div>
+                </div>
+
+                <!-- БЛОК ДЕЙСТВИЙ -->
+                {% if is_own_profile %}
+                    <button class="btn-main-action" onclick="toggleEditForm()">Редактировать профиль</button>
+                    <a href="{% url 'manage_quiz' %}" class="btn-main-action" style="text-align:center; color: #856404; background: #fff3cd; border-color: #ffeeba;">⚙️ Настроить квиз для заказчиков</a>
+                    
+                    <div class="edit-form-container" id="editFormContainer">
+                        <form method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            {{ form.as_p }}
+                            <button type="submit" class="btn-primary">Сохранить изменения</button>
+                        </form>
+                    </div>
+                {% else %}
+                    <!-- Кнопка Коллаборации (если автор готов) -->
+                    {% if user.open_to_collaboration %}
+                        <a href="{% url 'start_chat' user.id %}?collab=true" class="btn-main-action" style="background: #e3f2fd; border-color: #bbdefb; color: #1565c0; font-weight: 600; text-align: center; margin-bottom: 0.8rem;">
+                            🤝 Предложить сотрудничество
+                        </a>
+                    {% endif %}
+
+                    <!-- Кнопка Связаться / Квиз -->
+                    {% if user.quiz_questions.exists %}
+                        <button onclick="document.getElementById('quizModal').style.display='block'" class="btn-main-action" style="background: #fff3cd; border-color: #ffeeba; color: #856404; font-weight: 600; text-align: center;">
+                            📩 Связаться с автором (Пройти тест)
+                        </button>
+                    {% else %}
+                        <a href="{% url 'start_chat' user.id %}" class="btn-main-action" style="background: #e3f2fd; border-color: #bbdefb; color: #1565c0; font-weight: 600; text-align: center;">
+                            📩 Связаться с автором
+                        </a>
+                    {% endif %}
+                {% endif %}
+
+                <div class="section-divider"></div>
+
+                <div class="bio-contacts-block">
+                    <h2 style="margin-top: 0; font-size: 1.2rem; color: #444; margin-bottom: 1rem;">О себе и контакты</h2>
+                    
+                    {% if user.bio %}
+                        <p class="bio-text">{{ user.bio|linebreaksbr }}</p>
+                    {% else %}
+                        <p style="color: #888; font-style: italic; margin-bottom: 1rem;">Описание профиля пока не заполнено.</p>
+                    {% endif %}
+
+                    <div class="contacts-grid">
+                        {% if user.phone %}
+                            <div class="contact-item">
+                                <div class="contact-label">Телефон</div>
+                                <div class="contact-value">{{ user.phone }}</div>
+                            </div>
+                        {% endif %}
+                        
+                        {% if user.contact_method %}
+                            <div class="contact-item">
+                                <div class="contact-label">Способ связи</div>
+                                <div class="contact-value">{{ user.contact_method }}</div>
+                            </div>
+                        {% endif %}
+                        
+                        {% if user.github_url %}
+                            <div class="contact-item">
+                                <div class="contact-label">GitHub</div>
+                                <div class="contact-value"><a href="{{ user.github_url }}" target="_blank">Перейти</a></div>
+                            </div>
+                        {% endif %}
+                        
+                        {% if user.website_url %}
+                            <div class="contact-item">
+                                <div class="contact-label">Сайт</div>
+                                <div class="contact-value"><a href="{{ user.website_url }}" target="_blank">Перейти</a></div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="section-divider"></div>
+
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h2 style="margin: 0; font-size: 1.2rem; color: #444;">Работы</h2>
+                        {% if is_own_profile %}
+                            <a href="{% url 'upload_work' %}" style="background: #007bff; color: white; text-decoration: none; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.9rem; font-weight: 500;">+ Загрузить</a>
                         {% endif %}
                     </div>
 
-                    <!-- НОВОЕ: ВЫВОД ТЕГОВ -->
-                    {% if user.tags.all %}
-                        <div class="user-tags">
-                            {% for tag in user.tags.all %}
-                                <span class="user-tag">#{{ tag.name }}</span>
+                    {% if is_own_profile and rejected_works %}
+                        <div style="background: #fff5f5; border: 1px solid #ffcccc; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                            <h3 style="color: #dc3545; margin-top: 0; margin-bottom: 1rem; font-size: 1.1rem;">Отклоненные:</h3>
+                            {% for work in rejected_works %}
+                                <div style="display: flex; gap: 1rem; margin-bottom: 1rem; border-bottom: 1px dashed #ffcccc; padding-bottom: 1rem;">
+                                    <div style="flex-grow: 1;">
+                                        <b>{{ work.title }}</b>
+                                        <div style="color: #dc3545; font-size: 0.85rem; margin-top: 0.3rem;">Причина: {{ work.moderator_feedback|default:"Не указана." }}</div>
+                                    </div>
+                                    <form method="post" action="{% url 'delete_work' work.pk %}" style="margin: 0;">
+                                        {% csrf_token %}
+                                        <button type="submit" style="background: #dc3545; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem;" onclick="return confirm('Удалить?');">Удалить</button>
+                                    </form>
+                                </div>
                             {% endfor %}
                         </div>
                     {% endif %}
+
+                    {% if approved_works %}
+                        <div class="works-grid">
+                            {% for work in approved_works %}
+                                <div class="work-card {% if work.is_pinned %}pinned{% endif %}" style="{% if work.is_pinned %}border: 2px solid #ffca28;{% endif %}">
+                                    <a href="{% url 'work_detail' work.pk %}">
+                                        {% if work.thumbnail %}
+                                            <img src="{{ work.thumbnail.url }}" alt="{{ work.title }}">
+                                        {% elif work.image %}
+                                            <img src="{{ work.image.url }}" alt="{{ work.title }}">
+                                        {% elif work.video %}
+                                            <div style="height: 150px; display: flex; align-items: center; justify-content: center; font-size: 3rem; background: #f8f9fa;">🎬</div>
+                                        {% elif work.audio %}
+                                            <div style="height: 150px; display: flex; align-items: center; justify-content: center; font-size: 3rem; background: #f8f9fa;">🎵</div>
+                                        {% endif %}
+                                        {% if work.is_pinned %}
+                                            <div style="position: absolute; top: 10px; right: 10px; background: #ffca28; color: #333; padding: 3px 6px; border-radius: 10px; font-size: 0.7rem; font-weight: bold;">📌 Топ</div>
+                                        {% endif %}
+                                    </a>
+                                    <div class="work-info">
+                                        <a href="{% url 'work_detail' work.pk %}" class="work-title">{{ work.title }}</a>
+                                        <div class="work-meta">❤️ {{ work.likes.count }} | 💬 {{ work.comments.count }}</div>
+                                        
+                                        {% if is_own_profile %}
+                                            <div style="display: flex; justify-content: center; gap: 1rem; margin-top: 0.8rem;">
+                                                <form method="post" action="{% url 'toggle_pin_work' work.pk %}" style="margin: 0;">
+                                                    {% csrf_token %}
+                                                    <button type="submit" style="background: none; border: none; cursor: pointer; font-size: 1.1rem;">{% if work.is_pinned %}📌{% else %}📍{% endif %}</button>
+                                                </form>
+                                                <form method="post" action="{% url 'delete_work' work.pk %}" style="margin: 0;">
+                                                    {% csrf_token %}
+                                                    <button type="submit" style="background: none; border: none; cursor: pointer; font-size: 1.1rem;" onclick="return confirm('Удалить?');">🗑️</button>
+                                                </form>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div style="text-align: center; padding: 2rem; background: #f8f9fa; border-radius: 8px; color: #888;">
+                            У вас пока нет одобренных работ.
+                        </div>
+                    {% endif %}
                 </div>
+
             </div>
-            {% if is_own_profile %}
-            <form method="post" action="{% url 'logout' %}" style="margin: 0;">
+        </main>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО ДЛЯ КВИЗА (показывается только в чужом профиле, если у автора есть вопросы) -->
+    {% if not is_own_profile and user.quiz_questions.exists %}
+    <div id="quizModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2000;">
+        <div style="background:#fff; max-width:500px; margin:50px auto; padding:20px; border-radius:12px; position:relative; max-height:80vh; overflow-y:auto;">
+            <span onclick="document.getElementById('quizModal').style.display='none'" style="position:absolute; right:15px; top:10px; cursor:pointer; font-size:1.5rem;">&times;</span>
+            <h2 style="margin-top:0;">Тест на сотрудничество</h2>
+            <p style="color:#666; margin-bottom: 1.5rem;">Ответьте на вопросы, чтобы связаться с автором.</p>
+            <form method="post" action="{% url 'quiz' user.id %}">
                 {% csrf_token %}
-                <button type="submit" class="logout-btn">Выйти</button>
+                {% for q in user.quiz_questions.all %}
+                    <div style="margin-bottom: 15px;">
+                        <p><b>{{ q.text }}</b></p>
+                        {% for opt in q.options.all %}
+                            <label style="display:block; margin-bottom:5px; cursor:pointer;">
+                                <input type="radio" name="question_{{ q.id }}" value="{{ opt.id }}" required>
+                                {{ opt.text }}
+                            </label>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+                <button type="submit" style="width:100%; padding:10px; background:#28a745; color:white; border:none; border-radius:6px; cursor:pointer; font-size:1rem;">Проверить ответы</button>
             </form>
-            {% endif %}
-        </div>
-
-        <div class="stats">
-            <div class="stat">❤️ Лайков: {{ profile_likes_count }}</div>
-            <div class="stat">✅ Работ: {{ approved_works.count }}</div>
-            {% if is_own_profile %}
-                <div class="stat">⏳ На модерации: {{ pending_works.count }}</div>
-            {% endif %}
-            <div class="stat">💬 Контактов: {{ user.contact_count }}</div>
-        </div>
-    </div>
-
-    <!-- КАРТОЧКА 2: КОНТАКТЫ И ИНФОРМАЦИЯ (Возвращено наверх) -->
-    <div class="card">
-        <h2 style="margin-top: 0; font-size: 1.4rem; color: #444;">Контакты и информация</h2>
-        
-        {% if user.bio %}
-            <p class="bio-text">{{ user.bio|linebreaksbr }}</p>
-        {% else %}
-            <p style="color: #888; font-style: italic; margin-bottom: 1.5rem;">Описание профиля пока не заполнено.</p>
-        {% endif %}
-
-        <div class="contacts-grid">
-            {% if user.phone %}
-                <div class="contact-item">
-                    <div class="contact-label">Телефон</div>
-                    <div class="contact-value">{{ user.phone }}</div>
-                </div>
-            {% endif %}
-            
-            {% if user.contact_method %}
-                <div class="contact-item">
-                    <div class="contact-label">Способ связи</div>
-                    <div class="contact-value">{{ user.contact_method }}</div>
-                </div>
-            {% endif %}
-            
-            {% if user.github_url %}
-                <div class="contact-item">
-                    <div class="contact-label">GitHub</div>
-                    <div class="contact-value"><a href="{{ user.github_url }}" target="_blank">{{ user.github_url }}</a></div>
-                </div>
-            {% endif %}
-            
-            {% if user.website_url %}
-                <div class="contact-item">
-                    <div class="contact-label">Сайт</div>
-                    <div class="contact-value"><a href="{{ user.website_url }}" target="_blank">{{ user.website_url }}</a></div>
-                </div>
-            {% endif %}
-        </div>
-    </div>
-
-    <!-- КАРТОЧКА 3: Редактирование (Выпадающая) -->
-    {% if is_own_profile %}
-    <div class="card edit-accordion">
-        <div class="edit-summary" onclick="toggleEditForm()">
-            <span>⚙️ Редактировать профиль</span>
-            <span class="arrow" id="editArrow">▼</span>
-        </div>
-        
-        <div class="edit-content-wrapper" id="editContentWrapper">
-            <div class="edit-content-inner">
-                <form method="post" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    {{ form.as_p }}
-                    <button type="submit" class="btn-primary">Сохранить изменения</button>
-                </form>
-            </div>
         </div>
     </div>
     {% endif %}
-    <!-- КАРТОЧКА 4: РАБОТЫ -->
-    <div class="card">
-        <div class="section-title">
-            <h2 style="margin: 0; font-size: 1.4rem; color: #444;">Мои работы</h2>
-            {% if is_own_profile %}
-            <a href="{% url 'upload_work' %}" class="btn-upload">+ Загрузить новую</a>
-            {% endif %}
-        </div>
 
-        <!-- Отклоненные работы -->
-        {% if is_own_profile and rejected_works %}
-            <div class="rejected-box">
-                <h3 class="rejected-title">Отклоненные работы:</h3>
-                
-                {% for work in rejected_works %}
-                    <div class="rejected-item">
-                        {% if work.thumbnail %}
-                            <img src="{{ work.thumbnail.url }}" alt="{{ work.title }}" class="rejected-img">
-                        {% elif work.image %}
-                            <img src="{{ work.image.url }}" alt="{{ work.title }}" class="rejected-img">
-                        {% elif work.video %}
-                            <div class="rejected-placeholder">🎬</div>
-                        {% elif work.audio %}
-                            <div class="rejected-placeholder">🎵</div>
-                        {% endif %}
-                        
-                        <div style="flex-grow: 1;">
-                            <b style="font-size: 1.1rem; color: #333;">{{ work.title }}</b>
-                            <div style="color: #dc3545; margin-top: 0.5rem; font-size: 0.95rem; background: #fff; padding: 0.5rem; border-radius: 4px; border: 1px solid #ffebeb;">
-                                <b>Причина:</b> {{ work.moderator_feedback|default:"Причина не указана." }}
-                            </div>
-                            
-                            <div style="display: flex; align-items: center; gap: 1rem; margin-top: 1rem;">
-                                <form method="post" action="{% url 'delete_work' work.pk %}" style="margin: 0;">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn-delete" onclick="return confirm('Точно удалить эту работу?');">
-                                        🗑️ Удалить
-                                    </button>
-                                </form>
-                                <span style="font-size: 0.8rem; color: #888;">(Автоудаление через 7 дней)</span>
-                            </div>
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-        {% endif %}
-
-        <!-- Одобренные работы -->
-        {% if approved_works %}
-            <div class="works-grid">
-                                {% for work in approved_works %}
-                    <div class="work-card {% if work.is_pinned %}pinned{% endif %}">
-                        <a href="{% url 'work_detail' work.pk %}" style="position: relative; display: block;">
-                            {% if work.thumbnail %}
-                                <img src="{{ work.thumbnail.url }}" alt="{{ work.title }}">
-                            {% elif work.image %}
-                                <img src="{{ work.image.url }}" alt="{{ work.title }}">
-                            {% elif work.video %}
-                                <div class="media-placeholder">🎬</div>
-                            {% elif work.audio %}
-                                <div class="media-placeholder">🎵</div>
-                            {% endif %}
-                            
-                            <!-- Значок на самой картинке, если закреплено -->
-                            {% if work.is_pinned %}
-                                <div style="position: absolute; top: 10px; right: 10px; background: #ffca28; color: #333; padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-                                    📌 Топ
-                                </div>
-                            {% endif %}
-                        </a>
-                        
-                        <div class="work-info">
-                            <a href="{% url 'work_detail' work.pk %}" class="work-title">{{ work.title }}</a>
-                            
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem;">
-                                <div class="work-meta">
-                                    ❤️ {{ work.likes.count }} &nbsp;|&nbsp; 💬 {{ work.comments.count }}
-                                </div>
-                                {% if is_own_profile %}
-                                <div style="display: flex; gap: 0.5rem; align-items: center;">
-                                    <!-- Кнопка закрепления -->
-                                    <form method="post" action="{% url 'toggle_pin_work' work.pk %}" style="margin: 0;">
-                                        {% csrf_token %}
-                                        <button type="submit" class="pin-btn {% if work.is_pinned %}is-pinned{% endif %}" title="{% if work.is_pinned %}Открепить{% else %}Закрепить в топ{% endif %}">
-                                            {% if work.is_pinned %}📌{% else %}📍{% endif %}
-                                        </button>
-                                    </form>
-
-                                    <!-- Кнопка удаления -->
-                                    <form method="post" action="{% url 'delete_work' work.pk %}" style="margin: 0;">
-                                        {% csrf_token %}
-                                        <button type="submit" style="background: none; border: none; cursor: pointer; font-size: 1.1rem; padding: 0; opacity: 0.6; transition: opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'" onclick="return confirm('Удалить работу?');" title="Удалить">
-                                            🗑️
-                                        </button>
-                                    </form>
-                                </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <div style="text-align: center; padding: 2rem; background: #f8f9fa; border-radius: 8px; color: #888;">
-                У вас пока нет одобренных работ. Загрузите первую!
-            </div>
-        {% endif %}
-    </div>
-
-</div>
-
-<script>
-    function toggleEditForm() {
-        const wrapper = document.getElementById('editContentWrapper');
-        const arrow = document.getElementById('editArrow');
-        
-        if (!wrapper.style.maxHeight || wrapper.style.maxHeight === '0px') {
-            wrapper.style.maxHeight = wrapper.scrollHeight + 'px';
-            wrapper.style.opacity = '1';
-            arrow.style.transform = 'rotate(180deg)';
-        } else {
-            wrapper.style.maxHeight = wrapper.scrollHeight + 'px';
-            requestAnimationFrame(() => {
-                wrapper.style.maxHeight = '0px';
-                wrapper.style.opacity = '0';
-            });
-            arrow.style.transform = 'rotate(0deg)';
+    <!-- СКРИПТЫ -->
+    <script>
+        function toggleEditForm() {
+            const container = document.getElementById('editFormContainer');
+            container.classList.toggle('active');
         }
-    }
 
-    window.addEventListener('resize', () => {
-        const wrapper = document.getElementById('editContentWrapper');
-        if (wrapper.style.maxHeight && wrapper.style.maxHeight !== '0px') {
-            wrapper.style.maxHeight = wrapper.scrollHeight + 'px';
-        }
+        // Скрипт скрытия/показа шапки
+        let lastScrollTop = 0;
+        const header = document.getElementById('mainHeader');
+
+        window.addEventListener('scroll', function() {
+            let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            
+            if (scrollTop > lastScrollTop && scrollTop > 30) {
+                header.classList.add('hidden-nav');
+            } else {
+                header.classList.remove('hidden-nav');
+            }
+            lastScrollTop = scrollTop <= 0 ? 0 : scrollTop; 
+        }, false);
+    </script>
+    
+    <!-- Select2 для тегов -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+    $(document).ready(function () {
+        $('.select2-tags').select2({
+            placeholder: "Начните вводить название тега...",
+            allowClear: true,
+            width: '100%',
+            closeOnSelect: false,
+            language: {
+                noResults: function () { return "Ничего не найдено"; },
+                searching: function () { return "Поиск..."; }
+            }
+        });
     });
-</script>
-<!-- Select2 CSS -->
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-
-<!-- jQuery (нужен для Select2) -->
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-
-<!-- Select2 JS -->
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
-<script>
-$(document).ready(function () {
-    $('.select2-tags').select2({
-        placeholder: "Начните вводить название тега...",
-        allowClear: true,
-        width: '100%',
-        closeOnSelect: false,            // чтобы можно было выбрать несколько
-        language: {
-            noResults:     function () { return "Ничего не найдено"; },
-            searching:     function () { return "Поиск..."; },
-            inputTooShort: function () { return "Введите хотя бы 1 символ"; },
-            loadingMore:   function () { return "Загрузка..."; },
-        }
-    });
-});
-
-</script>
-<script>
-    let lastScrollTop = 0;
-    const navBar = document.querySelector('.top-nav');
-
-    window.addEventListener('scroll', function() {
-        let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        
-        // Если мы в самом верху страницы (отступ меньше 10 пикселей) — показываем
-        if (scrollTop < 10) {
-            navBar.classList.remove('hidden-nav');
-        } else {
-            // Если прокрутили вниз — прячем
-            navBar.classList.add('hidden-nav');
-        }
-        
-        lastScrollTop = scrollTop;
-    });
-</script>
+    </script>
 </body>
 </html>

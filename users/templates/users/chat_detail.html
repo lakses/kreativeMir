@@ -1,0 +1,95 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Чат с {{ other_user.username }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&display=swap" rel="stylesheet">
+    <style>
+        /* ВСТАВЬ СЮДА СВОИ СТИЛИ ШАПКИ ИЗ ПРЕДЫДУЩЕГО ФАЙЛА */
+        /* Для экономии места оставлю только стили самого чата */
+        body { font-family: 'Segoe UI', sans-serif; background: url("/media/static/images/fon.jpg") no-repeat center center fixed; background-size: cover; margin: 0; padding: 0; min-height: 100vh; }
+        .container { max-width: 900px; margin: 150px auto 20px auto; padding: 0 20px; }
+        
+        .chat-box { background: #fff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); display: flex; flex-direction: column; height: 70vh; }
+        .chat-header { padding: 1rem 1.5rem; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 1rem; }
+        .chat-header h2 { margin: 0; font-size: 1.2rem; }
+        .back-btn { text-decoration: none; color: #007bff; font-weight: 500; }
+        
+        .chat-messages { flex-grow: 1; padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; background: #f9f9f9; }
+        .msg-bubble { max-width: 70%; padding: 0.8rem 1.2rem; border-radius: 15px; font-size: 0.95rem; line-height: 1.4; position: relative; }
+        .msg-mine { align-self: flex-end; background: #d4edda; color: #155724; border-bottom-right-radius: 2px; }
+        .msg-other { align-self: flex-start; background: #fff; border: 1px solid #eee; color: #333; border-bottom-left-radius: 2px; }
+        .msg-time { font-size: 0.7rem; color: #888; margin-top: 0.4rem; display: block; text-align: right; }
+        
+        .chat-input { padding: 1rem; border-top: 1px solid #eee; display: flex; gap: 0.5rem; background: #fff; border-radius: 0 0 12px 12px; }
+        .chat-input input[type="text"] { flex-grow: 1; padding: 0.8rem 1rem; border: 1px solid #ccc; border-radius: 20px; outline: none; }
+        .chat-input input[type="text"]:focus { border-color: #28a745; }
+        .chat-input button { background: #28a745; color: white; border: none; padding: 0 1.5rem; border-radius: 20px; font-weight: 600; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <!-- ШАПКА (Скопируй сюда header из chat_list.html) -->
+
+    <div class="container">
+        <div class="chat-box">
+            <div class="chat-header">
+                <a href="{% url 'chat_list' %}" class="back-btn">← Назад</a>
+                <h2>{{ other_user.username }} {% if chat.is_collaboration %}(Коллаборация){% endif %}</h2>
+            </div>
+            
+            <div class="chat-messages" id="chat-messages">
+                <!-- Сообщения будут рендериться через JS -->
+            </div>
+            
+            <form method="post" class="chat-input">
+                {% csrf_token %}
+                <input type="text" name="text" placeholder="Напишите сообщение..." required autocomplete="off">
+                <button type="submit">Отправить</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const chatId = "{{ chat.id }}";
+        const currentUser = "{{ request.user.username }}";
+        let lastMsgCount = 0;
+        
+        function renderMessages(messages) {
+            const container = document.getElementById('chat-messages');
+            
+            // Скроллим вниз, если мы были внизу
+            const isScrolledToBottom = container.scrollHeight - container.clientHeight <= container.scrollTop + 50;
+            
+            container.innerHTML = '';
+            messages.forEach(msg => {
+                const div = document.createElement('div');
+                div.className = `msg-bubble ${msg.is_mine ? 'msg-mine' : 'msg-other'}`;
+                div.innerHTML = `${msg.text} <span class="msg-time">${msg.timestamp}</span>`;
+                container.appendChild(div);
+            });
+            
+            if (isScrolledToBottom || lastMsgCount === 0) {
+                container.scrollTop = container.scrollHeight;
+            }
+            lastMsgCount = messages.length;
+        }
+
+        function fetchMessages() {
+            fetch(`/chat/${chatId}/messages/`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.messages.length !== lastMsgCount) {
+                        renderMessages(data.messages);
+                    }
+                });
+        }
+
+        // Первичная загрузка
+        fetchMessages();
+        
+        // Проверка каждые 2 секунды
+        setInterval(fetchMessages, 2000);
+    </script>
+</body>
+</html>

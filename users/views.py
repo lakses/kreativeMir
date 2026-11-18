@@ -4,6 +4,9 @@ from django.contrib.auth import login, get_user_model
 from django.utils import timezone
 from datetime import timedelta
 from django.contrib.contenttypes.models import ContentType
+from django.http import JsonResponse
+from django.db.models import Q, Max
+from .models import Chat, Message, QuizQuestion, QuizOption
 
 from works.models import Work
 from users.models import Like
@@ -82,3 +85,133 @@ def register_view(request):
         form = UserRegisterForm()
 
     return render(request, 'registration/register.html', {'form': form})
+def get_or_create_chat(user1, user2, is_collab=False):
+    # Сортируем пользователей по ID, чтобы не было дублей чатов (А-Б и Б-А)
+    if user1.id > user2.id:
+        user1, user2 = user2, user1
+    chat, created = Chat.objects.get_or_create(user1=user1, user2=user2)
+    if is_collab and not chat.is_collaboration:
+        chat.is_collaboration = True
+        chat.save()
+    return chat
+
+# --- ЧАТЫ ---
+@login_required
+def chat_list_view(request):
+    chats = Chat.objects.filter(Q(user1=request.user) | Q(user2=request.user)).annotate(
+        last_msg_time=Max('messages__timestamp')
+    ).order_by('-last_msg_time')
+    
+    chat_data = []
+    for chat in chats:
+        other_user = chat.user2 if chat.user1 == request.user else chat.user1
+        last_msg = chat.messages.order_by('-timestamp').first()
+        unread_count = chat.messages.filter(is_read=False).exclude(sender=request.user).count()
+        chat_data.append({
+            'chat': chat,
+            'other_user': other_user,
+            'last_msg': last_msg,
+            'unread_count': unread_count
+        })
+    
+    return render(request, 'users/chat_list.html', {'chat_data': chat_data})
+
+@login_required
+def chat_detail_view(request, chat_id):
+    chat = get_object_or_404(Chat, id=chat_id)
+    if request.user not in [chat.user1, chat.user2]:
+        return redirect('profile')
+    
+    chat.messages.filter(is_read=False).exclude(sender=request.user).update(is_read=True)
+    
+    if request.method == 'POST':
+        text = request.POST.get('text')
+        if text:
+            Message.objects.create(chat=chat, sender=request.user, text=text)
+        return redirect('chat_detail', chat_id=chat.id)
+        
+    messages = chat.messages.order_by('timestamp')
+    other_user = chat.user2 if chat.user1 == request.user else chat.user1
+    
+    return render(request, 'users/chat_detail.html', {
+        'chat': chat,
+        'messages': messages,
+        'other_user': other_user
+    })
+
+@login_required
+def start_chat_view(request, user_id):
+    target_user = get_object_or_404(User, id=user_id)
+    if target_user == request.user:
+        return redirect('profile')
+    
+    is_collab = request.GET.get('collab') == 'true'
+    chat = get_or_create_chat(request.user, target_user, is_collab=is_collab)
+    return redirect('chat_detail', chat_id=chat.id)
+
+@login_required
+def get_new_messages_api(request, chat_id):
+    chat = get_object_or_404(Chat, id=chat_id)
+    if request.user not in [chat.user1, chat.user2]:
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+        
+    chat.messages.filter(is_read=False).exclude(sender=request.user).update(is_read=True)
+    
+    messages = chat.messages.order_by('timestamp')
+    msg_list = [{
+        'id': msg.id,
+        'sender': msg.sender.username,
+        'is_mine': msg.sender == request.user,
+        'text': msg.text,
+        'timestamp': msg.timestamp.strftime('%H:%M')
+    } for msg in messages]
+    return JsonResponse({'messages': msg_list})
+
+# --- КВИЗ ---
+@login_required
+def quiz_view(request, user_id):
+    author = get_object_or_404(User, id=user_id)
+    questions = author.quiz_questions.prefetch_related('options')
+    
+    if not questions.exists():
+        return redirect(f"/chat/start/{author.id}/")
+        
+    if request.method == 'POST':
+        is_correct_all = True
+        for q in questions:
+            answer_id = request.POST.get(f'question_{q.id}')
+            if not answer_id:
+                is_correct_all = False
+                break
+            option = q.options.filter(id=answer_id).first()
+            if not option or not option.is_correct:
+                is_correct_all = False
+                break
+                
+        if is_correct_all:
+            return redirect(f"/chat/start/{author.id}/")
+        else:
+            return render(request, 'users/quiz_result.html', {'author': author})
+            
+    return render(request, 'users/quiz.html', {'author': author, 'questions': questions})
+
+# --- УПРАВЛЕНИЕ КВИЗОМ (ДЛЯ КРЕАТОРА) ---
+@login_required
+def manage_quiz_view(request):
+    if request.method == 'POST':
+        question_text = request.POST.get('question_text')
+        if question_text:
+            q = QuizQuestion.objects.create(author=request.user, text=question_text)
+            options = request.POST.getlist('option_text')
+            correct_idx = request.POST.get('correct_option')
+            for i, opt_text in enumerate(options):
+                if opt_text:
+                    QuizOption.objects.create(
+                        question=q, 
+                        text=opt_text, 
+                        is_correct=(str(i) == correct_idx)
+                    )
+        return redirect('manage_quiz')
+        
+    questions = request.user.quiz_questions.prefetch_related('options')
+    return render(request, 'users/manage_quiz.html', {'questions': questions})

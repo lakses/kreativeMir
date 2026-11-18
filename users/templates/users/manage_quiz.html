@@ -1,0 +1,57 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Настройка квиза</title>
+    <!-- Вставь стили шапки -->
+</head>
+<body>
+    <!-- Вставь шапку (header) -->
+    
+    <div class="container" style="max-width: 800px; margin: 150px auto;">
+        <div class="card" style="background:#fff; padding:2rem; border-radius:12px;">
+            <h2>Настройка квиза для заказчиков</h2>
+            <p style="color:#666;">Добавьте вопросы, чтобы отсеивать нерелевантные заказы.</p>
+            
+            <form method="post" style="background:#f8f9fa; padding:1.5rem; border-radius:8px; margin-bottom:2rem;">
+                {% csrf_token %}
+                <label style="display:block; font-weight:600; margin-bottom:0.5rem;">Вопрос:</label>
+                <input type="text" name="question_text" required style="width:100%; padding:0.6rem; margin-bottom:1rem; border:1px solid #ccc; border-radius:6px;">
+                
+                <label style="display:block; font-weight:600; margin-bottom:0.5rem;">Варианты ответа (отметьте правильный):</label>
+                <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;">
+                    <input type="radio" name="correct_option" value="0" required>
+                    <input type="text" name="option_text" placeholder="Вариант 1" required style="flex-grow:1; padding:0.6rem; border:1px solid #ccc; border-radius:6px;">
+                </div>
+                <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;">
+                    <input type="radio" name="correct_option" value="1">
+                    <input type="text" name="option_text" placeholder="Вариант 2" style="flex-grow:1; padding:0.6rem; border:1px solid #ccc; border-radius:6px;">
+                </div>
+                <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:1rem;">
+                    <input type="radio" name="correct_option" value="2">
+                    <input type="text" name="option_text" placeholder="Вариант 3" style="flex-grow:1; padding:0.6rem; border:1px solid #ccc; border-radius:6px;">
+                </div>
+                
+                <button type="submit" style="background:#28a745; color:white; border:none; padding:0.6rem 1.2rem; border-radius:6px; cursor:pointer;">Добавить вопрос</button>
+            </form>
+            
+            <h3>Ваши вопросы:</h3>
+            {% for q in questions %}
+                <div style="border-bottom:1px solid #eee; padding:1rem 0;">
+                    <b>{{ q.text }}</b>
+                    <ul>
+                        {% for opt in q.options.all %}
+                            <li style="color: {% if opt.is_correct %}green{% else %}#666{% endif %};">
+                                {{ opt.text }} {% if opt.is_correct %}(Правильный){% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% empty %}
+                <p style="color:#888;">Вопросов пока нет.</p>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>
