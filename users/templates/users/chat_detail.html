@@ -6,22 +6,29 @@
     <title>Чат с {{ other_user.username }}</title>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&display=swap" rel="stylesheet">
     <style>
-        /* ВСТАВЬ СЮДА СВОИ СТИЛИ ШАПКИ ИЗ ПРЕДЫДУЩЕГО ФАЙЛА */
-        /* Для экономии места оставлю только стили самого чата */
         body { font-family: 'Segoe UI', sans-serif; background: url("/media/static/images/fon.jpg") no-repeat center center fixed; background-size: cover; margin: 0; padding: 0; min-height: 100vh; }
         .container { max-width: 900px; margin: 150px auto 20px auto; padding: 0 20px; }
-        
+
         .chat-box { background: #fff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); display: flex; flex-direction: column; height: 70vh; }
         .chat-header { padding: 1rem 1.5rem; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 1rem; }
         .chat-header h2 { margin: 0; font-size: 1.2rem; }
         .back-btn { text-decoration: none; color: #007bff; font-weight: 500; }
-        
+
         .chat-messages { flex-grow: 1; padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; background: #f9f9f9; }
-        .msg-bubble { max-width: 70%; padding: 0.8rem 1.2rem; border-radius: 15px; font-size: 0.95rem; line-height: 1.4; position: relative; }
-        .msg-mine { align-self: flex-end; background: #d4edda; color: #155724; border-bottom-right-radius: 2px; }
-        .msg-other { align-self: flex-start; background: #fff; border: 1px solid #eee; color: #333; border-bottom-left-radius: 2px; }
-        .msg-time { font-size: 0.7rem; color: #888; margin-top: 0.4rem; display: block; text-align: right; }
         
+        /* --- НОВЫЕ СТИЛИ ДЛЯ АВАТАРОК --- */
+        .msg-row { display: flex; align-items: flex-end; gap: 0.6rem; max-width: 85%; }
+        .msg-row-mine { align-self: flex-end; flex-direction: row-reverse; }
+        .msg-row-other { align-self: flex-start; }
+        
+        .msg-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; background: #ddd; flex-shrink: 0; border: 1px solid #eee; }
+        
+        /* Стили самих пузырей (убрал align-self, так как теперь его задает msg-row) */
+        .msg-bubble { padding: 0.8rem 1.2rem; border-radius: 15px; font-size: 0.95rem; line-height: 1.4; position: relative; word-break: break-word; }
+        .msg-mine { background: #d4edda; color: #155724; border-bottom-right-radius: 2px; }
+        .msg-other { background: #fff; border: 1px solid #eee; color: #333; border-bottom-left-radius: 2px; }
+        .msg-time { font-size: 0.7rem; color: #888; margin-top: 0.4rem; display: block; text-align: right; }
+
         .chat-input { padding: 1rem; border-top: 1px solid #eee; display: flex; gap: 0.5rem; background: #fff; border-radius: 0 0 12px 12px; }
         .chat-input input[type="text"] { flex-grow: 1; padding: 0.8rem 1rem; border: 1px solid #ccc; border-radius: 20px; outline: none; }
         .chat-input input[type="text"]:focus { border-color: #28a745; }
@@ -29,7 +36,7 @@
     </style>
 </head>
 <body>
-    <!-- ШАПКА (Скопируй сюда header из chat_list.html) -->
+    <!-- ШАПКА сюда -->
 
     <div class="container">
         <div class="chat-box">
@@ -37,12 +44,10 @@
                 <a href="{% url 'chat_list' %}" class="back-btn">← Назад</a>
                 <h2>{{ other_user.username }} {% if chat.is_collaboration %}(Коллаборация){% endif %}</h2>
             </div>
-            
-            <div class="chat-messages" id="chat-messages">
-                <!-- Сообщения будут рендериться через JS -->
-            </div>
-            
-            <form method="post" class="chat-input">
+
+            <div class="chat-messages" id="chat-messages"></div>
+
+            <form method="post" class="chat-input" id="chat-form">
                 {% csrf_token %}
                 <input type="text" name="text" placeholder="Напишите сообщение..." required autocomplete="off">
                 <button type="submit">Отправить</button>
@@ -51,45 +56,125 @@
     </div>
 
     <script>
+    (function () {
+        const DEBUG = true;
         const chatId = "{{ chat.id }}";
-        const currentUser = "{{ request.user.username }}";
-        let lastMsgCount = 0;
-        
+        const container = document.getElementById('chat-messages');
+        const form      = document.getElementById('chat-form');
+        const input     = form.querySelector('input[name="text"]');
+
+        let lastSig = null;
+        let timer   = null;
+
         function renderMessages(messages) {
-            const container = document.getElementById('chat-messages');
-            
-            // Скроллим вниз, если мы были внизу
-            const isScrolledToBottom = container.scrollHeight - container.clientHeight <= container.scrollTop + 50;
-            
+            const atBottom = container.scrollHeight - container.clientHeight
+                            <= container.scrollTop + 50;
             container.innerHTML = '';
-            messages.forEach(msg => {
-                const div = document.createElement('div');
-                div.className = `msg-bubble ${msg.is_mine ? 'msg-mine' : 'msg-other'}`;
-                div.innerHTML = `${msg.text} <span class="msg-time">${msg.timestamp}</span>`;
-                container.appendChild(div);
+            
+            messages.forEach(function (msg) {
+                // Создаем общую строку (аватарка + сообщение)
+                const row = document.createElement('div');
+                row.className = 'msg-row ' + (msg.is_mine ? 'msg-row-mine' : 'msg-row-other');
+
+                // 1. Создаем АВАТАРКУ
+                const avatar = document.createElement('img');
+                avatar.className = 'msg-avatar';
+                // Если бэкенд пришлет avatar_url - используем его. Если нет - заглушка с буквой.
+                const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(msg.sender_name || 'U')}&background=random&color=fff&rounded=true`;
+                avatar.src = msg.avatar_url || fallbackAvatar;
+                avatar.alt = msg.sender_name || 'User';
+
+                // 2. Создаем ПУЗЫРЬ С ТЕКСТОМ
+                const bubble = document.createElement('div');
+                bubble.className = 'msg-bubble ' + (msg.is_mine ? 'msg-mine' : 'msg-other');
+
+                const t = document.createElement('span');
+                t.textContent = msg.text;
+                bubble.appendChild(t);
+
+                const ts = document.createElement('span');
+                ts.className = 'msg-time';
+                ts.textContent = msg.timestamp;
+                bubble.appendChild(ts);
+
+                // Собираем всё вместе
+                row.appendChild(avatar);
+                row.appendChild(bubble);
+                container.appendChild(row);
             });
             
-            if (isScrolledToBottom || lastMsgCount === 0) {
+            if (atBottom || lastSig === null) {
                 container.scrollTop = container.scrollHeight;
             }
-            lastMsgCount = messages.length;
         }
 
-        function fetchMessages() {
-            fetch(`/chat/${chatId}/messages/`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.messages.length !== lastMsgCount) {
-                        renderMessages(data.messages);
-                    }
+        async function fetchMessages() {
+            const url = "{% url 'get_new_messages' chat.id %}?_=" + Date.now();
+            let res;
+            try {
+                res = await fetch(url, {
+                    credentials: 'same-origin',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
                 });
+            } catch (e) {
+                console.error('[chat] fetch error:', e);
+                return;
+            }
+
+            if (!res.ok) return;
+
+            let data;
+            try { data = await res.json(); }
+            catch (e) { return; }
+
+            let messages = [];
+            if (Array.isArray(data)) messages = data;
+            else if (data && Array.isArray(data.messages)) messages = data.messages;
+            else return;
+
+            const sig = messages.length === 0
+                ? '0'
+                : (messages.length + ':' + (messages[messages.length - 1].id || messages[messages.length - 1].text));
+
+            if (sig !== lastSig) {
+                renderMessages(messages);
+                lastSig = sig;
+            }
         }
 
-        // Первичная загрузка
-        fetchMessages();
-        
-        // Проверка каждые 2 секунды
-        setInterval(fetchMessages, 2000);
+        // Отправка без перезагрузки
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const text = input.value.trim();
+            if (!text) return;
+
+            const fd = new FormData(form);
+            try {
+                const res = await fetch(window.location.href, {
+                    method: 'POST',
+                    body: fd,
+                    credentials: 'same-origin',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                input.value = '';
+                lastSig = null; // заставим перерисовать
+                await fetchMessages();
+            } catch (err) {
+                console.error('[chat] send error:', err);
+            }
+        });
+
+        async function loop() {
+            await fetchMessages();
+            timer = setTimeout(loop, 2000);
+        }
+        loop();
+
+        document.addEventListener('visibilitychange', function () {
+            if (document.hidden) { clearTimeout(timer); }
+            else { clearTimeout(timer); loop(); }
+        });
+    })();
     </script>
 </body>
 </html>
