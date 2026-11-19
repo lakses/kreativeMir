@@ -7,7 +7,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.http import JsonResponse
 from django.db.models import Q, Max
 from .models import Chat, Message, QuizQuestion, QuizOption, Post, PostComment
-
+from django.core.cache import cache
 
 from works.models import Work
 from users.models import Like
@@ -83,7 +83,7 @@ def profile_view(request, username=None):
         'pending_works': pending_works,
         'rejected_works': rejected_works,
         'profile_likes_count': total_likes,
-        'posts': posts, # <--- Передаем посты в шаблон
+        'posts': posts, 
         'unread_messages_count': unread_messages_count,
     }
     return render(request, 'users/profile.html', context)
@@ -103,6 +103,8 @@ def register_view(request):
         form = UserRegisterForm()
 
     return render(request, 'registration/register.html', {'form': form})
+
+
 def get_or_create_chat(user1, user2, is_collab=False):
     # Сортируем пользователей по ID, чтобы не было дублей чатов (А-Б и Б-А)
     if user1.id > user2.id:
@@ -113,13 +115,26 @@ def get_or_create_chat(user1, user2, is_collab=False):
         chat.save()
     return chat
 
-# --- ЧАТЫ ---
+
+# --- ЧАТЫ (ОБЪЕДИНЕННАЯ СТРАНИЦА) ---
 @login_required
-def chat_list_view(request):
-    chats = Chat.objects.filter(Q(user1=request.user) | Q(user2=request.user)).annotate(
+def chat_list_view(request, chat_id=None):
+    search_query = request.GET.get('q', '')
+    
+    # Получаем чаты пользователя, сортируем по времени последнего сообщения
+    chats = Chat.objects.filter(
+        Q(user1=request.user) | Q(user2=request.user)
+    ).annotate(
         last_msg_time=Max('messages__timestamp')
     ).order_by('-last_msg_time')
-    
+
+    # Фильтрация (поиск по нику собеседника)
+    if search_query:
+        chats = chats.filter(
+            (Q(user1=request.user) & Q(user2__username__icontains=search_query)) |
+            (Q(user2=request.user) & Q(user1__username__icontains=search_query))
+        )
+
     chat_data = []
     for chat in chats:
         other_user = chat.user2 if chat.user1 == request.user else chat.user1
@@ -131,31 +146,52 @@ def chat_list_view(request):
             'last_msg': last_msg,
             'unread_count': unread_count
         })
-    
-    return render(request, 'users/chat_list.html', {'chat_data': chat_data})
 
-@login_required
-def chat_detail_view(request, chat_id):
-    chat = get_object_or_404(Chat, id=chat_id)
-    if request.user not in [chat.user1, chat.user2]:
-        return redirect('profile')
+    active_chat = None
+    messages = None
+    other_user = None
+    is_other_online = False  # <-- Важно: задаем значение по умолчанию
     
-    chat.messages.filter(is_read=False).exclude(sender=request.user).update(is_read=True)
-    
-    if request.method == 'POST':
-        text = request.POST.get('text')
-        if text:
-            Message.objects.create(chat=chat, sender=request.user, text=text)
-        return redirect('chat_detail', chat_id=chat.id)
+    # Если открыт конкретный чат (ВОТ ТУТ БЫЛ ЛИШНИЙ ОТСТУП)
+    if chat_id:
+        active_chat = get_object_or_404(Chat, id=chat_id)
         
-    messages = chat.messages.order_by('timestamp')
-    other_user = chat.user2 if chat.user1 == request.user else chat.user1
-    
-    return render(request, 'users/chat_detail.html', {
-        'chat': chat,
+        if request.user in [active_chat.user1, active_chat.user2]:
+            # --- СТАТУС ОНЛАЙН ---
+            # Записываем текущего юзера в кэш на 2 минуты (120 секунд)
+            cache.set(f'user_online_{request.user.id}', True, timeout=120)
+            
+            # Обработка отправки сообщения
+            if request.method == 'POST':
+                text = request.POST.get('text')
+                if text:
+                    Message.objects.create(chat=active_chat, sender=request.user, text=text)
+                return redirect('chat_detail', chat_id=active_chat.id)
+            
+            # Помечаем прочитанным
+            active_chat.messages.filter(is_read=False).exclude(sender=request.user).update(is_read=True)
+            messages = active_chat.messages.order_by('timestamp')
+            other_user = active_chat.user2 if active_chat.user1 == request.user else active_chat.user1
+
+            # Проверяем, есть ли собеседник в кэше
+            is_other_online = cache.get(f'user_online_{other_user.id}') is not None
+
+    # Считаем общее количество непрочитанных для шапки
+    unread_messages_count = Message.objects.filter(
+        chat__in=Chat.objects.filter(Q(user1=request.user) | Q(user2=request.user)),
+        is_read=False
+    ).exclude(sender=request.user).count()
+
+    return render(request, 'users/chats.html', {
+        'chat_data': chat_data,
+        'search_query': search_query,
+        'active_chat': active_chat,
         'messages': messages,
-        'other_user': other_user
+        'other_user': other_user,
+        'is_other_online': is_other_online,  # <-- Важно: передаем в шаблон
+        'unread_messages_count': unread_messages_count,
     })
+
 
 @login_required
 def start_chat_view(request, user_id):
@@ -167,19 +203,26 @@ def start_chat_view(request, user_id):
     chat = get_or_create_chat(request.user, target_user, is_collab=is_collab)
     return redirect('chat_detail', chat_id=chat.id)
 
+
 @login_required
 def get_new_messages_api(request, chat_id):
     chat = get_object_or_404(Chat, id=chat_id)
     if request.user not in [chat.user1, chat.user2]:
         return JsonResponse({'error': 'Unauthorized'}, status=403)
         
-    chat.messages.filter(is_read=False).exclude(sender=request.user).update(is_read=True)
+    # --- СТАТУС ОНЛАЙН ---
+    # Записываем, что мы сейчас онлайн
+    cache.set(f'user_online_{request.user.id}', True, timeout=120)
     
+    # Проверяем, онлайн ли собеседник
+    other_user = chat.user2 if chat.user1 == request.user else chat.user1
+    is_other_online = cache.get(f'user_online_{other_user.id}') is not None
+
+    chat.messages.filter(is_read=False).exclude(sender=request.user).update(is_read=True)
     messages = chat.messages.order_by('timestamp')
     
     msg_list = []
     for msg in messages:
-        # Берем аватарку напрямую из User
         avatar_url = ''
         if msg.sender.avatar:
             avatar_url = msg.sender.avatar.url
@@ -194,7 +237,96 @@ def get_new_messages_api(request, chat_id):
             'timestamp': msg.timestamp.strftime('%H:%M')
         })
         
-    return JsonResponse({'messages': msg_list})
+    return JsonResponse({
+        'messages': msg_list,
+        'is_other_online': is_other_online # <--- Передаем статус в JS
+    })
+
+
+# --- ПОСТЫ ---
+def post_detail(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    
+    if request.method == 'POST':
+        if 'like' in request.POST:
+            like, created = Like.objects.get_or_create(
+                user=request.user,
+                content_type=ContentType.objects.get_for_model(Post),
+                object_id=post.id
+            )
+            if not created:
+                like.delete()
+            return redirect('post_detail', pk=post.pk)
+            
+        elif 'comment' in request.POST:
+            text = request.POST.get('text')
+            if text:
+                PostComment.objects.create(post=post, author=request.user, text=text)
+            return redirect('post_detail', pk=post.pk)
+
+    comments = post.comments.all().order_by('created_at')
+    is_liked = False
+    if request.user.is_authenticated:
+        is_liked = Like.objects.filter(
+            user=request.user,
+            content_type=ContentType.objects.get_for_model(Post),
+            object_id=post.id
+        ).exists()
+        
+    context = {
+        'post': post,
+        'comments': comments,
+        'is_liked': is_liked,
+    }
+    return render(request, 'post_detail.html', context)
+
+
+@login_required
+def feed_view(request):
+    if request.method == 'POST':
+        text = request.POST.get('text')
+        image = request.FILES.get('image')
+        if text or image:
+            Post.objects.create(author=request.user, text=text, image=image)
+            return redirect('feed')
+
+    posts = list(Post.objects.select_related('author').prefetch_related('likes', 'comments'))
+    works = list(Work.objects.filter(status='approved').select_related('author').prefetch_related('likes', 'comments'))
+
+    for p in posts:
+        p.type = 'post'
+    for w in works:
+        w.type = 'work'
+
+    feed_items = sorted(posts + works, key=lambda x: x.created_at, reverse=True)
+
+    return render(request, 'users/feed.html', {
+        'feed_items': feed_items,
+    })
+
+
+@login_required
+def toggle_post_like_view(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    like, created = Like.objects.get_or_create(
+        user=request.user,
+        content_type=ContentType.objects.get_for_model(Post),
+        object_id=post.id
+    )
+    if not created:
+        like.delete()
+    return redirect(request.META.get('HTTP_REFERER', 'profile'))
+
+
+@login_required
+def add_post_comment_view(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    if request.method == 'POST':
+        text = request.POST.get('text')
+        if text:
+            PostComment.objects.create(post=post, author=request.user, text=text)
+    return redirect(request.META.get('HTTP_REFERER', 'profile'))
+
 
 # --- КВИЗ ---
 @login_required
@@ -202,7 +334,6 @@ def quiz_view(request, user_id):
     author = get_object_or_404(User, id=user_id)
     questions = author.quiz_questions.prefetch_related('options')
     
-    # Если у автора нет вопросов, сразу кидаем в чат
     if not questions.exists():
         return redirect('start_chat', user_id=author.id)
         
@@ -219,14 +350,13 @@ def quiz_view(request, user_id):
                 break
                 
         if is_correct_all:
-            # Если ответил правильно, кидаем в чат через имя маршрута
             return redirect('start_chat', user_id=author.id)
         else:
             return render(request, 'users/quiz_result.html', {'author': author})
             
     return render(request, 'users/quiz.html', {'author': author, 'questions': questions})
 
-# --- УПРАВЛЕНИЕ КВИЗОМ (ДЛЯ КРЕАТОРА) ---
+
 @login_required
 def manage_quiz_view(request):
     if request.method == 'POST':
@@ -246,53 +376,3 @@ def manage_quiz_view(request):
         
     questions = request.user.quiz_questions.prefetch_related('options')
     return render(request, 'users/manage_quiz.html', {'questions': questions})
-
-@login_required
-def feed_view(request):
-    if request.method == 'POST':
-        # Обработка создания поста
-        text = request.POST.get('text')
-        image = request.FILES.get('image')
-        if text or image:
-            Post.objects.create(author=request.user, text=text, image=image)
-            return redirect('feed')
-
-    # Достаем все посты и одобренные работы
-    posts = list(Post.objects.select_related('author').prefetch_related('likes', 'comments'))
-    works = list(Work.objects.filter(status='approved').select_related('author').prefetch_related('likes', 'comments'))
-
-    # Помечаем, где что, чтобы в шаблоне их правильно отрисовать
-    for p in posts:
-        p.type = 'post'
-    for w in works:
-        w.type = 'work'
-
-    # Смешиваем и сортируем по дате создания (новые сверху)
-    feed_items = sorted(posts + works, key=lambda x: x.created_at, reverse=True)
-
-    return render(request, 'users/feed.html', {
-        'feed_items': feed_items,
-    })
-
-
-@login_required
-def toggle_post_like_view(request, post_id):
-    post = get_object_or_404(Post, id=post_id)
-    like, created = Like.objects.get_or_create(
-        user=request.user,
-        content_type=ContentType.objects.get_for_model(Post),
-        object_id=post.id
-    )
-    if not created:
-        like.delete()
-        return redirect(request.META.get('HTTP_REFERER', 'profile'))
-
-
-@login_required
-def add_post_comment_view(request, post_id):
-    post = get_object_or_404(Post, id=post_id)
-    if request.method == 'POST':
-        text = request.POST.get('text')
-        if text:
-            PostComment.objects.create(post=post, author=request.user, text=text)
-    return redirect(request.META.get('HTTP_REFERER', 'profile'))

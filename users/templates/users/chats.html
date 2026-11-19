@@ -1,0 +1,376 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Чаты — КреативМир</title>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&display=swap" rel="stylesheet">
+    <style>
+        /* --- ОБЩИЕ СТИЛИ --- */
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: url("/media/static/images/fon.jpg") no-repeat center center fixed; 
+            background-size: cover; margin: 0; padding: 0; color: #333; 
+            height: 100vh; overflow: hidden; /* Запрещаем скролл всего body */
+        }
+
+        /* --- ВЕРХНЯЯ ПАНЕЛЬ (КАК НА ДРУГИХ СТРАНИЦАХ) --- */
+        .header-wrapper { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .top-nav { background: linear-gradient(90deg, #1e3a8a, #3b82f6); height: 70px; display: flex; align-items: center; padding: 0 2rem; box-sizing: border-box; justify-content: center; position: relative; }
+        .brand { font-family: 'Caveat', cursive; font-size: 2.2rem; color: #fff; text-decoration: none; text-shadow: 1px 1px 2px rgba(0,0,0,0.2); position: absolute; left: 2rem; }
+        .nav-links { display: flex; align-items: center; gap: 0.5rem; }
+        .diamond { color: rgba(255, 255, 255, 0.6); font-size: 1rem; margin: 0 0.5rem; }
+        .nav-links a { color: #e2e8f0; text-decoration: none; font-size: 0.95rem; font-weight: 500; padding: 0.5rem 1rem; border-radius: 20px; transition: all 0.2s; }
+        .nav-links a:hover { background: rgba(255,255,255,0.15); color: #fff; }
+        .nav-links a.active { background: #3b82f6; color: #fff; font-weight: 600; box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4); }
+
+        /* --- ОСНОВНОЙ МАКЕТ (ДВЕ КОЛОНКИ) --- */
+        .chat-layout { 
+            display: flex; 
+            max-width: 1200px; 
+            margin: 90px auto 20px auto; 
+            padding: 0 20px; 
+            height: calc(100vh - 110px); /* Высота под размер экрана */
+            gap: 20px; 
+        }
+
+        /* --- ЛЕВАЯ КОЛОНКА (СПИСОК ЧАТОВ) --- */
+        .sidebar { 
+            width: 340px; 
+            background: #fff; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08); 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .sidebar-header { padding: 1.5rem 1.5rem 1rem 1.5rem; }
+        .sidebar-title { margin: 0 0 1rem 0; font-size: 1.4rem; font-weight: 700; color: #222; }
+        
+        .search-box input { 
+            width: 100%; padding: 0.7rem 1rem; border-radius: 8px; border: none; 
+            background: #f0f2f5; font-size: 0.95rem; outline: none; box-sizing: border-box; font-family: inherit;
+        }
+        .search-box input:focus { background: #e4e6eb; }
+
+        .chat-list { flex-grow: 1; overflow-y: auto; }
+        
+        .chat-item { display: flex; align-items: center; padding: 1rem 1.5rem; text-decoration: none; color: inherit; transition: background 0.2s; cursor: pointer; }
+        .chat-item:hover { background: #f8f9fa; }
+        .chat-item.active { background: #e3f2fd; /* Голубой фон для активного чата */ }
+        
+        .chat-avatar { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; margin-right: 1rem; flex-shrink: 0; }
+        /* Цветные заглушки для аватарок */
+        .avatar-fallback { display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 1.2rem; }
+        .bg-0 { background: #fbbf24; } .bg-1 { background: #ef4444; } .bg-2 { background: #3b82f6; } 
+        .bg-3 { background: #10b981; } .bg-4 { background: #8b5cf6; } .bg-5 { background: #ec4899; }
+
+        .chat-info { flex-grow: 1; min-width: 0; }
+        .chat-name { margin: 0 0 0.2rem 0; font-size: 1rem; font-weight: 600; color: #222; display: flex; align-items: center; justify-content: space-between; }
+        .chat-preview { margin: 0; font-size: 0.85rem; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        .chat-meta { display: flex; flex-direction: column; align-items: flex-end; margin-left: 0.5rem; }
+        .chat-time { font-size: 0.75rem; color: #aaa; }
+        .unread-badge { background: #10b981; color: white; font-size: 0.7rem; font-weight: bold; padding: 0.1rem 0.4rem; border-radius: 10px; margin-top: 0.3rem; }
+
+        /* --- ПРАВАЯ КОЛОНКА (ОКНО ЧАТА) --- */
+        .chat-window { 
+            flex-grow: 1; 
+            background: #fff; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08); 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden;
+            position: relative;
+        }
+
+        .chat-window-header { 
+            padding: 1rem 1.5rem; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 1rem; background: #fff; z-index: 2;
+        }
+        .chat-window-header .chat-name { font-size: 1.1rem; margin: 0; }
+        .chat-window-header .chat-status { font-size: 0.8rem; color: #10b981; font-weight: 500; }
+
+        /* Окно сообщений (с фоновой картинкой) */
+        .chat-messages-area { 
+            flex-grow: 1; 
+            padding: 1.5rem; 
+            overflow-y: auto; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 1rem; 
+            background: url("/media/static/images/fon_chat.jpg") repeat center center; /* ФОН ЧАТА */
+            background-color: #e5e7eb; /* Запасной цвет, если картинка не загрузится */
+            background-blend-mode: multiply; /* Немного приглушает узор, если он яркий */
+        }
+
+        /* Разделитель "Сегодня" */
+        .date-divider { text-align: center; margin: 1rem 0; }
+        .date-divider span { background: rgba(0,0,0,0.5); color: #fff; padding: 0.3rem 1rem; border-radius: 20px; font-size: 0.8rem; backdrop-filter: blur(4px); }
+
+        /* Строки сообщений */
+        .msg-row { display: flex; align-items: flex-end; gap: 0.6rem; max-width: 75%; }
+        .msg-row-mine { align-self: flex-end; flex-direction: row-reverse; }
+        .msg-row-other { align-self: flex-start; }
+        
+        .msg-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; background: #ddd; flex-shrink: 0; }
+
+        /* ПУЗЫРИ (Бежевый дизайн) */
+        .msg-bubble { padding: 0.8rem 1rem; border-radius: 16px; font-size: 0.95rem; line-height: 1.4; position: relative; word-break: break-word; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .msg-mine { background: #fef1dc; color: #333; border-bottom-right-radius: 4px; } /* Бежевый для своих */
+        .msg-other { background: #ffffff; color: #333; border-bottom-left-radius: 4px; } /* Белый для чужих */
+        
+        .msg-time { font-size: 0.7rem; color: #a1a1aa; margin-top: 0.3rem; display: block; text-align: right; }
+
+        /* Поле ввода */
+        .chat-input-area { padding: 1rem 1.5rem; background: #fff; display: flex; align-items: center; gap: 0.8rem; z-index: 2; }
+        .chat-input-area form { display: flex; width: 100%; align-items: center; gap: 0.8rem; margin: 0; }
+        
+        .input-icon { background: #f0f2f5; border: none; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.2rem; color: #666; flex-shrink: 0; transition: background 0.2s; }
+        .input-icon:hover { background: #e4e6eb; }
+        
+        .chat-input { flex-grow: 1; padding: 0.8rem 1.2rem; border: none; background: #f0f2f5; border-radius: 20px; outline: none; font-size: 0.95rem; font-family: inherit; }
+        .chat-input:focus { background: #e4e6eb; }
+
+        .btn-send { background: transparent; color: #3b82f6; border: none; padding: 0 0.5rem; font-weight: 700; font-size: 1.1rem; cursor: pointer; }
+        .btn-send:hover { color: #1e3a8a; }
+
+        /* Заглушка, если чат не выбран */
+        .empty-chat-placeholder { display: flex; align-items: center; justify-content: center; height: 100%; color: #888; font-size: 1.1rem; background: #f8f9fa; flex-direction: column; gap: 1rem; }
+        .empty-chat-placeholder span { font-size: 3rem; }
+    </style>
+</head>
+<body>
+
+    <!-- ШАПКА -->
+    <header class="header-wrapper">
+        <div class="top-nav">
+            <a href="{% url 'profile' %}" class="brand">КреативМир</a>
+            <span class="diamond">♦</span>
+            <div class="nav-links">
+                <a href="{% url 'profile' %}">Главная</a>
+                <a href="#">Сообщество</a>
+                <a href="{% url 'feed' %}">Лента</a>
+                <a href="{% url 'creators_list' %}">Авторы</a>
+                <a href="#">События</a>
+                <a href="{% url 'chat_list' %}" class="active">Чаты</a>
+            </div>
+            <span class="diamond">♦</span>
+        </div>
+    </header>
+
+    <!-- ОСНОВНОЙ МАКЕТ ЧАТОВ -->
+    <div class="chat-layout">
+        
+        <!-- ЛЕВАЯ КОЛОНКА (СПИСОК) -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1 class="sidebar-title">Чаты</h1>
+                <div class="search-box">
+                    <!-- Форма поиска -->
+                    <form method="GET" action="{% url 'chat_list' %}">
+                        <input type="text" name="q" placeholder="Найти" value="{{ search_query|default:'' }}">
+                    </form>
+                </div>
+            </div>
+
+            <div class="chat-list">
+                {% for item in chat_data %}
+                    <!-- Проверяем, открыт ли этот чат, чтобы добавить класс active -->
+                    <a href="{% url 'chat_detail' item.chat.id %}" class="chat-item {% if active_chat and active_chat.id == item.chat.id %}active{% endif %}">
+                        
+                        <!-- Аватарка -->
+                        {% if item.other_user.avatar %}
+                            <img src="{{ item.other_user.avatar.url }}" class="chat-avatar">
+                        {% else %}
+                            <!-- Генерируем цвет на основе длины имени или ID -->
+                            <div class="chat-avatar avatar-fallback bg-{{ item.other_user.id|default:0|stringformat:'d'|slice:'-1' }}">
+                                {{ item.other_user.username|first|upper }}
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Инфо -->
+                        <div class="chat-info">
+                            <h3 class="chat-name">
+                                {{ item.other_user.username }}
+                            </h3>
+                            <p class="chat-preview">
+                                {% if item.last_msg %}
+                                    {% if item.last_msg.sender == request.user %}Вы: {% endif %}{{ item.last_msg.text }}
+                                {% else %}
+                                    Нет сообщений
+                                {% endif %}
+                            </p>
+                        </div>
+                        
+                        <!-- Мета (время и непрочитанные) -->
+                        <div class="chat-meta">
+                            <div class="chat-time">{{ item.last_msg.timestamp|date:"H:i"|default:"" }}</div>
+                            {% if item.unread_count > 0 %}
+                                <span class="unread-badge">{{ item.unread_count }}</span>
+                            {% endif %}
+                        </div>
+                    </a>
+                {% empty %}
+                    <div style="padding: 2rem; text-align: center; color: #888;">Диалогов пока нет.</div>
+                {% endfor %}
+            </div>
+        </aside>
+
+        <!-- ПРАВАЯ КОЛОНКА (САМ ЧАТ) -->
+        <main class="chat-window">
+            {% if active_chat %}
+                <!-- Шапка активного чата -->
+                <div class="chat-window-header">
+                    {% if other_user.avatar %}
+                        <img src="{{ other_user.avatar.url }}" class="chat-avatar">
+                    {% else %}
+                        <div class="chat-avatar avatar-fallback bg-{{ other_user.id|default:0|stringformat:'d'|slice:'-1' }}" style="width: 40px; height: 40px; font-size: 1rem;">
+                            {{ other_user.username|first|upper }}
+                        </div>
+                    {% endif %}
+                    <div>
+                        <h2 class="chat-name">{{ other_user.username }}</h2>
+                        <span class="chat-status" id="chat-status" style="{% if is_other_online %}color: #10b981;{% else %}color: #aaa;{% endif %}">
+                            {% if is_other_online %}В сети{% else %}Не в сети{% endif %}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Окно с сообщениями -->
+                <div class="chat-messages-area" id="chat-messages">
+                    <!-- Скрипт заполнит это окно сообщениями. 
+                         Для первоначальной отрисовки без JS (если нужно), можно прописать цикл Django,
+                         но твой AJAX скрипт сделает это лучше. 
+                         Мы оставим пустым, скрипт сразу подгрузит. -->
+                </div>
+
+                <!-- Поле ввода -->
+                <div class="chat-input-area">
+                    <button type="button" class="input-icon">📎</button>
+                    <form method="post" id="chat-form">
+                        {% csrf_token %}
+                        <input type="text" name="text" class="chat-input" placeholder="Сообщение" required autocomplete="off">
+                        <button type="button" class="input-icon">😊</button>
+                        <button type="submit" class="btn-send" style="display: none;">➤</button> <!-- Скрываем, чтобы не ломать дизайн, отправка по Enter -->
+                    </form>
+                </div>
+            {% else %}
+                <!-- Заглушка, если чат не выбран -->
+                <div class="empty-chat-placeholder">
+                    <span>💬</span>
+                    <p>Выберите чат, чтобы начать общение</p>
+                </div>
+            {% endif %}
+        </main>
+
+    </div>
+
+    <!-- JS СКРИПТ ДЛЯ РАБОТЫ ЧАТА (Запускается только если чат открыт) -->
+    {% if active_chat %}
+    <script>
+    (function () {
+        const chatId = "{{ active_chat.id }}";
+        const container = document.getElementById('chat-messages');
+        const form = document.getElementById('chat-form');
+        const input = form.querySelector('input[name="text"]');
+
+        let lastSig = null;
+        let timer = null;
+
+        // Функция отрисовки сообщений
+        function renderMessages(messages) {
+            const atBottom = container.scrollHeight - container.clientHeight <= container.scrollTop + 50;
+            container.innerHTML = '';
+            
+            // Добавляем плашку "Сегодня"
+            const dateDiv = document.createElement('div');
+            dateDiv.className = 'date-divider';
+            dateDiv.innerHTML = '<span>Сегодня</span>';
+            container.appendChild(dateDiv);
+
+            messages.forEach(function (msg) {
+                const row = document.createElement('div');
+                row.className = 'msg-row ' + (msg.is_mine ? 'msg-row-mine' : 'msg-row-other');
+
+                // Аватарка
+                const avatar = document.createElement('img');
+                avatar.className = 'msg-avatar';
+                const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(msg.sender_name || 'U')}&background=random&color=fff&rounded=true`;
+                avatar.src = msg.avatar_url || fallbackAvatar;
+                
+                // Пузырь
+                const bubble = document.createElement('div');
+                bubble.className = 'msg-bubble ' + (msg.is_mine ? 'msg-mine' : 'msg-other');
+
+                const t = document.createElement('span');
+                t.textContent = msg.text;
+                bubble.appendChild(t);
+
+                const ts = document.createElement('span');
+                ts.className = 'msg-time';
+                ts.textContent = msg.timestamp;
+                bubble.appendChild(ts);
+
+                row.appendChild(avatar);
+                row.appendChild(bubble);
+                container.appendChild(row);
+            });
+            
+            if (atBottom || lastSig === null) {
+                container.scrollTop = container.scrollHeight;
+            }
+        }
+
+        // Получение сообщений
+        async function fetchMessages() {
+            const url = "{% url 'get_new_messages' active_chat.id %}?_=" + Date.now();
+            try {
+                const res = await fetch(url, { credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                if (!res.ok) return;
+                const data = await res.json();
+                let messages = Array.isArray(data) ? data : (data.messages || []);
+
+                const sig = messages.length === 0 ? '0' : (messages.length + ':' + (messages[messages.length - 1].id || messages[messages.length - 1].text));
+
+                if (sig !== lastSig) {
+                    renderMessages(messages);
+                    lastSig = sig;
+                }
+            } catch (e) { console.error('[chat] fetch error:', e); }
+        }
+
+        // Отправка сообщения
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const text = input.value.trim();
+            if (!text) return;
+
+            const fd = new FormData(form);
+            try {
+                await fetch(window.location.href, {
+                    method: 'POST', body: fd, credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                input.value = '';
+                lastSig = null; // Заставляем перерисовать
+                await fetchMessages();
+            } catch (err) { console.error('[chat] send error:', err); }
+        });
+
+        async function loop() {
+            await fetchMessages();
+            timer = setTimeout(loop, 2000); // Обновление каждые 2 секунды
+        }
+        loop();
+
+        document.addEventListener('visibilitychange', function () {
+            if (document.hidden) { clearTimeout(timer); }
+            else { clearTimeout(timer); loop(); }
+        });
+    })();
+    </script>
+    {% endif %}
+
+</body>
+</html>
