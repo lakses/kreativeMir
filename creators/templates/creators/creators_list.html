@@ -21,7 +21,7 @@
             min-height: 100vh;
         }
 
-        /* --- ВЕРХНЯЯ ПАНЕЛЬ (СИНЯЯ + ЗЕЛЕНАЯ) --- */
+        /* --- ВЕРХНЯЯ ПАНЕЛЬ (ЕДИНЫЙ ГРАДИЕНТ) --- */
         .header-wrapper {
             position: fixed;
             top: 0;
@@ -31,14 +31,15 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
 
-        /* Синяя полоса (Бренд + Поиск) */
-        .top-nav-blue {
-            background: linear-gradient(to right, #5b86e5, #36d1dc);
-            height: 60px;
+        .top-nav {
+            background: linear-gradient(90deg, #1e3a8a, #3b82f6); /* Темно-синий градиент */
+            height: 70px;
             display: flex;
             align-items: center;
             padding: 0 2rem;
             box-sizing: border-box;
+            justify-content: center;
+            position: relative;
         }
 
         .brand {
@@ -46,103 +47,44 @@
             font-size: 2.2rem;
             color: #fff;
             text-decoration: none;
-            margin-right: 2rem;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
-        }
-
-        .top-search-form {
-            flex-grow: 1;
-            max-width: 500px;
-        }
-
-        .top-search-form input {
-            width: 100%;
-            padding: 0.6rem 1.2rem;
-            border-radius: 20px;
-            border: none;
-            outline: none;
-            font-size: 0.95rem;
-            background: rgba(255, 255, 255, 0.9);
-            box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        /* Зеленая полоса (Меню) */
-        .top-nav-green {
-            background-color: #28a745;
-            height: 60px;
-            display: flex;
-            align-items: center;
-            padding: 0 2rem;
-            box-sizing: border-box;
+            position: absolute;
+            left: 2rem;
         }
 
         .nav-links {
             display: flex;
             align-items: center;
-            gap: 0.6rem;
-            width: 100%;
-            max-width: 1100px;
-            margin: 0 auto;
+            gap: 0.5rem;
         }
 
-        /* БЕЛЫЕ КНОПКИ НАВИГАЦИИ */
+        .diamond {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 1rem;
+            margin: 0 0.5rem;
+        }
+
         .nav-links a {
-            color: #28a745;
-            background: #fff;
+            color: #e2e8f0;
             text-decoration: none;
-            font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
+            font-weight: 500;
             padding: 0.5rem 1rem;
-            border-radius: 6px;
+            border-radius: 20px;
             transition: all 0.2s;
-            white-space: nowrap;
-            border: 1px solid #fff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
         .nav-links a:hover {
-            background: #f8f9fa;
-            color: #1e7e34;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-
-        /* Активная кнопка (темно-зеленая, чтобы выделяться среди белых) */
-        .nav-links a.active {
-            background: #155724;
+            background: rgba(255,255,255,0.15);
             color: #fff;
-            border-color: #155724;
         }
 
-        /* Кнопки справа */
-        .nav-auth {
-            margin-left: auto;
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-        }
-        
-        .btn-nav-upload {
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .nav-logout {
-            background: #fff;
-            border: 1px solid #fff;
-            color: #dc3545; /* Красный текст на белом фоне */
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            cursor: pointer;
+        /* Активный пункт с заливкой */
+        .nav-links a.active {
+            background: #3b82f6;
+            color: #fff;
             font-weight: 600;
-            font-size: 0.9rem;
-            transition: all 0.2s;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-
-        .nav-logout:hover {
-            background: #fff5f5;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
         }
 
         /* --- ЦЕНТРАЛЬНАЯ ЧАСТЬ --- */
@@ -150,44 +92,67 @@
             max-width: 1100px; 
             margin: 0 auto; 
             padding: 2rem 1rem; 
-            padding-top: 150px;
+            padding-top: 110px;
         }
 
-        /* ЕДИНЫЙ БЕЛЫЙ БЛОК ДЛЯ ВСЕГО */
-        .main-box {
-            background: #fff; 
-            padding: 1.5rem; 
-            border-radius: 12px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08); 
-        }
-
-        /* Секция фильтров внутри общего блока */
-        .controls-section {
-            padding-bottom: 1.5rem;
-            border-bottom: 2px dashed #eee; /* Разделитель между поиском и результатами */
-            margin-bottom: 1rem;
+        /* --- БЛОК ФИЛЬТРОВ (Вынесен наверх) --- */
+        .controls-wrapper {
+            background: #fff;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            margin-bottom: 1.5rem;
         }
 
         .filters-row { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; margin-bottom: 1rem; }
         .filters-row input[type="text"], .filters-row select { padding: 0.6rem 0.8rem; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95rem; font-family: inherit; }
         .filters-row input[type="text"] { flex: 1; min-width: 200px; }
-        .filters-row input[type="text"]:focus, .filters-row select:focus { border-color: #28a745; outline: none; box-shadow: 0 0 0 3px rgba(40,167,69,0.1); }
+        .filters-row input[type="text"]:focus, .filters-row select:focus { border-color: #3b82f6; outline: none; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
         .filters-row label.check { display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; font-size: 0.95rem; user-select: none; }
-        .filters-row button[type="submit"] { padding: 0.6rem 1.4rem; background: #28a745; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; font-family: inherit; font-size: 0.95rem; }
-        .filters-row button[type="submit"]:hover { background: #218838; }
+        .filters-row button[type="submit"] { padding: 0.6rem 1.4rem; background: #3b82f6; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; font-family: inherit; font-size: 0.95rem; transition: background 0.2s; }
+        .filters-row button[type="submit"]:hover { background: #2563eb; }
         .filters-row a.reset { color: #dc3545; text-decoration: none; font-size: 0.9rem; margin-left: 0.5rem; }
         .filters-row a.reset:hover { text-decoration: underline; }
 
-        /* Карточка креатора (теперь без отдельного фона и тени) */
+        /* --- ОСНОВНОЙ БЕЛЫЙ БЛОК --- */
+        .main-box {
+            background: #fff; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08); 
+            overflow: hidden; /* Чтобы шапка не вылезала за скругления */
+        }
+
+        /* Голубая плашка "Пользователи" */
+        .box-header {
+            background: linear-gradient(90deg, #a1c4fd, #c2e9fb); /* Голубой градиент */
+            padding: 1.2rem 1.5rem;
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: #1e3a8a;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        /* Контентная часть с авторами */
+        .box-content {
+            padding: 1.5rem; /* Отступы от краев белого блока */
+            background: #f8f9fa; /* Легкий серый фон для контейнера, чтобы белые карточки выделялись */
+        }
+
+        /* Карточка креатора */
         .creator-item { 
             display: flex; 
             flex-direction: column;
-            padding: 1.5rem 0; 
-            border-bottom: 1px solid #eee;
+            padding: 1.5rem; /* Внутренний отступ карточки (чтобы текст не прилипал к краям) */
+            margin-bottom: 1.5rem; /* Отступ МЕЖДУ карточками */
+            background: #fff; /* Белый фон самой карточки */
+            border: 1px solid #e0e0e0; /* Легкая рамка */
+            border-radius: 10px; /* НЕБОЛЬШОЕ СКРУГЛЕНИЕ (10 пикселей) */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02); /* Едва заметная тень для объема */
         }
+
+        /* Убираем отступ у последней карточки, чтобы не было лишнего пустого места внизу */
         .creator-item:last-child {
-            border-bottom: none;
-            padding-bottom: 0;
+            margin-bottom: 0;
         }
 
         .creator-header { display: flex; gap: 1.2rem; align-items: flex-start; }
@@ -196,7 +161,7 @@
         .creator-info { flex-grow: 1; min-width: 0; }
         .creator-name { margin: 0 0 0.2rem 0; font-size: 1.3rem; color: #222; }
         .creator-name a { color: inherit; text-decoration: none; }
-        .creator-name a:hover { color: #007bff; }
+        .creator-name a:hover { color: #3b82f6; }
         .creator-stats { margin: 0.2rem 0; color: #666; font-size: 0.9rem; }
         .creator-realname { margin: 0; color: #666; font-size: 0.9rem; }
         .creator-bio { margin: 0.6rem 0 0 0; color: #444; font-size: 0.93rem; line-height: 1.5; }
@@ -216,10 +181,11 @@
         .pinned-scroll::-webkit-scrollbar { height: 8px; }
         .pinned-scroll::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
         .pinned-scroll::-webkit-scrollbar-thumb:hover { background: #aaa; }
-        .work-card { flex: 0 0 150px; min-width: 150px; background: #fff; border: 1px solid #eee; border-radius: 10px; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s; text-decoration: none; color: inherit; display: block; }
+        
+        .work-card { flex: 0 0 160px; min-width: 160px; background: #fff; border: 1px solid #eee; border-radius: 10px; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s; text-decoration: none; color: inherit; display: block; }
         .work-card:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,0.1); }
-        .work-card img { width: 100%; height: 100px; object-fit: cover; display: block; }
-        .media-placeholder { display: flex; align-items: center; justify-content: center; height: 100px; font-size: 2rem; background: #f8f9fa; color: #ccc; }
+        .work-card img { width: 100%; height: 110px; object-fit: cover; display: block; }
+        .media-placeholder { display: flex; align-items: center; justify-content: center; height: 110px; font-size: 2rem; background: #f8f9fa; color: #ccc; }
         .work-info { padding: 0.5rem 0.7rem; }
         .work-title { font-size: 0.82rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #333; }
         .work-meta { font-size: 0.72rem; color: #888; margin-top: 0.25rem; }
@@ -227,8 +193,8 @@
         /* Пагинация */
         .pagination { display: flex; justify-content: center; gap: 0.4rem; margin-top: 2rem; flex-wrap: wrap; }
         .pagination a, .pagination span { padding: 0.45rem 0.9rem; border-radius: 6px; text-decoration: none; color: #333; background: #fff; border: 1px solid #ddd; font-size: 0.9rem; }
-        .pagination .current { background: #28a745; color: #fff; border-color: #28a745; font-weight: 600; }
-        .pagination a:hover { background: #f8f9fa; }
+        .pagination .current { background: #3b82f6; color: #fff; border-color: #3b82f6; font-weight: 600; }
+        .pagination a:hover { background: #f8f9fa; border-color: #3b82f6; color: #3b82f6; }
 
         .empty-state { text-align: center; padding: 4rem 2rem; color: #888; }
 
@@ -238,7 +204,7 @@
             font-family: inherit; font-size: 0.95rem;
         }
         .select2-container--default.select2-container--focus .select2-selection--multiple {
-            border-color: #28a745; box-shadow: 0 0 0 3px rgba(40,167,69,0.1);
+            border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
         }
         .select2-container--default .select2-selection--multiple .select2-selection__choice {
             background-color: #e9ecef; border: 1px solid #ddd; border-radius: 4px;
@@ -246,8 +212,10 @@
         }
 
         @media (max-width: 900px) {
-            .nav-links { overflow-x: auto; padding-bottom: 5px; }
-            .nav-auth { display: none; }
+            .nav-links { overflow-x: auto; padding-bottom: 5px; justify-content: flex-start; width: 100%; }
+            .brand { position: relative; left: 0; margin-right: 1rem; }
+            .diamond { display: none; }
+            .top-nav { flex-wrap: wrap; height: auto; padding: 1rem; justify-content: flex-start; }
         }
     </style>
 </head>
@@ -255,179 +223,182 @@
 
     <!-- ВЕРХНЯЯ ПАНЕЛЬ -->
     <header class="header-wrapper">
-        <div class="top-nav-blue">
-            <a href="{% url 'profile' %}" class="brand">КреативМир</a>
-            <form method="GET" action="{% url 'creators_list' %}" class="top-search-form">
-                <input type="text" name="q" placeholder="Поиск авторов по нику..." value="{{ q|default:'' }}">
-            </form>
-        </div>
-        
-        <div class="top-nav-green">
+        <div class="top-nav">
+            <a href="{% url 'feed' %}" class="brand">КреативМир</a>
+            <span class="diamond">♦</span>
+            
             <div class="nav-links">
                 <a href="{% url 'profile' %}">Главная</a>
                 <a href="#">Сообщество</a>
-                <a href="#">Партнерство</a>
+                <a href="{% url 'feed' %}">Лента</a>
                 <a href="{% url 'creators_list' %}" class="active">Авторы</a>
                 <a href="#">События</a>
-                <a href="#">Чат</a>
-                
-                <div class="nav-auth">
-                    <a href="{% url 'upload_work' %}" class="btn-nav-upload">+ Загрузить</a>
-                    <form method="post" action="{% url 'logout' %}" style="margin: 0;">
-                        {% csrf_token %}
-                        <button type="submit" class="nav-logout">Выйти</button>
-                    </form>
-                </div>
+                <a href="{% url 'chat_list' %}" 
+                    style="{% if unread_messages_count > 0 %}background: #003180; color: #ffffff; border-color: #ef4444; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);{% endif %}">
+                        Чаты 
+                        {% if unread_messages_count > 0 %}
+                            <span style="background: #ffffff; color: #ef4444; border-radius: 50%; padding: 2px 7px; font-size: 0.8rem; margin-left: 5px; font-weight: bold;">{{ unread_messages_count }}</span>
+                        {% endif %}
+                    </a>
             </div>
+
+            <span class="diamond">♦</span>
         </div>
     </header>
 
     <!-- ОСНОВНОЙ КОНТЕЙНЕР -->
     <div class="container">
         
+        <!-- БЛОК ФИЛЬТРОВ (Над основным блоком) -->
+        <div class="controls-wrapper">
+            <form method="get">
+                <div class="filters-row">
+                    <input type="text" name="q" value="{{ q }}" placeholder="🔍 Поиск по юзернейму...">
+
+                    <select name="sort">
+                        <option value="random" {% if selected_sort == 'random' %}selected{% endif %}>🎲 Случайно</option>
+                        <option value="new" {% if selected_sort == 'new' %}selected{% endif %}>🆕 Новые</option>
+                        <option value="popular" {% if selected_sort == 'popular' %}selected{% endif %}>🔥 Популярные</option>
+                        <option value="active" {% if selected_sort == 'active' %}selected{% endif %}>🎯 Активные</option>
+                    </select>
+
+                    <label class="check">
+                        <input type="checkbox" name="collab" {% if collab_checked %}checked{% endif %}>
+                        🤝 Готовы к сотрудничеству
+                    </label>
+
+                    <button type="submit">Применить</button>
+                    <a href="{% url 'creators_list' %}" class="reset">Сбросить</a>
+                </div>
+
+                {% if all_tags %}
+                    <div style="margin-top: 0.5rem; border-top: 1px solid #eee; padding-top: 1rem;">
+                        <label for="tags-select" style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: #555; font-weight: 500;">🏷️ Фильтр по тегам:</label>
+                        <select name="tags" id="tags-select" class="select2-tags" multiple="multiple" style="width: 100%;">
+                            {% for tag in all_tags %}
+                                <option value="{{ tag.id }}" {% if tag.id in selected_tag_ids %}selected{% endif %}>
+                                    #{{ tag.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                {% endif %}
+            </form>
+        </div>
+
         <!-- ЕДИНЫЙ БЕЛЫЙ БЛОК -->
         <div class="main-box">
             
-            <!-- Секция поиска и фильтров -->
-            <div class="controls-section">
-                <form method="get">
-                    <div class="filters-row">
-                        <input type="text" name="q" value="{{ q }}" placeholder="🔍 Поиск по юзернейму...">
-
-                        <select name="sort">
-                            <option value="random" {% if selected_sort == 'random' %}selected{% endif %}>🎲 Случайно</option>
-                            <option value="new" {% if selected_sort == 'new' %}selected{% endif %}>🆕 Новые</option>
-                            <option value="popular" {% if selected_sort == 'popular' %}selected{% endif %}>🔥 Популярные</option>
-                            <option value="active" {% if selected_sort == 'active' %}selected{% endif %}>🎯 Активные</option>
-                        </select>
-
-                        <label class="check">
-                            <input type="checkbox" name="collab" {% if collab_checked %}checked{% endif %}>
-                            🤝 Готовы к сотрудничеству
-                        </label>
-
-                        <button type="submit">Применить</button>
-                        <a href="{% url 'creators_list' %}" class="reset">Сбросить</a>
-                    </div>
-
-                    {% if all_tags %}
-                        <div style="margin-top: 0.5rem; border-top: 1px solid #eee; padding-top: 1rem;">
-                            <label for="tags-select" style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: #555; font-weight: 500;">🏷️ Фильтр по тегам:</label>
-                            <select name="tags" id="tags-select" class="select2-tags" multiple="multiple" style="width: 100%;">
-                                {% for tag in all_tags %}
-                                    <option value="{{ tag.id }}" {% if tag.id in selected_tag_ids %}selected{% endif %}>
-                                        #{{ tag.name }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    {% endif %}
-                </form>
+            <!-- Голубая плашка -->
+            <div class="box-header">
+                Пользователи
             </div>
 
-            <!-- Результаты поиска (Список авторов) -->
-            {% for creator in creators %}
-                <div class="creator-item">
-                    <div class="creator-header">
-                        {% if creator.avatar %}
-                            <img src="{{ creator.avatar.url }}" alt="Аватар" class="creator-avatar">
-                        {% else %}
-                            <div class="creator-avatar avatar-placeholder">Нет фото</div>
-                        {% endif %}
-
-                        <div class="creator-info">
-                            <h2 class="creator-name">
-                                <a href="{% url 'profile_detail' creator.username %}">{{ creator.username }}</a>
-                            </h2>
-
-                            <p class="creator-stats">
-                                🖼 {{ creator.approved_works_count }} работ &nbsp;·&nbsp;
-                                ❤️ {{ creator.total_likes }} лайков
-                            </p>
-
-                            {% if creator.first_name or creator.last_name %}
-                                <p class="creator-realname">{{ creator.first_name }} {{ creator.last_name }}</p>
+            <div class="box-content">
+                <!-- Результаты поиска (Список авторов) -->
+                {% for creator in creators %}
+                    <div class="creator-item">
+                        <div class="creator-header">
+                            {% if creator.avatar %}
+                                <img src="{{ creator.avatar.url }}" alt="Аватар" class="creator-avatar">
+                            {% else %}
+                                <div class="creator-avatar avatar-placeholder">Нет фото</div>
                             {% endif %}
 
-                            {% if creator.bio %}
-                                <p class="creator-bio">{{ creator.bio|truncatewords:25 }}</p>
-                            {% endif %}
+                            <div class="creator-info">
+                                <h2 class="creator-name">
+                                    <a href="{% url 'profile_detail' creator.username %}">{{ creator.username }}</a>
+                                </h2>
 
-                            <div class="badges-container">
-                                {% if creator.available_for_orders %}
-                                    <span class="badge badge-orders">🟢 Могу брать заказы</span>
+                                <p class="creator-stats">
+                                    🖼 {{ creator.approved_works_count }} работ &nbsp;·&nbsp;
+                                    ❤️ {{ creator.total_likes }} лайков
+                                </p>
+
+                                {% if creator.first_name or creator.last_name %}
+                                    <p class="creator-realname">{{ creator.first_name }} {{ creator.last_name }}</p>
                                 {% endif %}
-                                {% if creator.open_to_collaboration %}
-                                    <span class="badge badge-collab">🤝 Готов к сотрудничеству</span>
+
+                                {% if creator.bio %}
+                                    <p class="creator-bio">{{ creator.bio|truncatewords:25 }}</p>
+                                {% endif %}
+
+                                <div class="badges-container">
+                                    {% if creator.available_for_orders %}
+                                        <span class="badge badge-orders">🟢 Могу брать заказы</span>
+                                    {% endif %}
+                                    {% if creator.open_to_collaboration %}
+                                        <span class="badge badge-collab">🤝 Готов к сотрудничеству</span>
+                                    {% endif %}
+                                </div>
+
+                                {% if creator.tags.all %}
+                                    <div class="user-tags">
+                                        {% for tag in creator.tags.all %}
+                                            <span class="user-tag">#{{ tag.name }}</span>
+                                        {% endfor %}
+                                    </div>
                                 {% endif %}
                             </div>
+                        </div>
 
-                            {% if creator.tags.all %}
-                                <div class="user-tags">
-                                    {% for tag in creator.tags.all %}
-                                        <span class="user-tag">#{{ tag.name }}</span>
+                        <!-- Выводим только закрепленные работы, ограничение 5 штук -->
+                        {% if creator.pinned_works_list %}
+                            <div class="pinned-section">
+                                <div class="pinned-title">📌 Закреплённые работы</div>
+                                <div class="pinned-scroll">
+                                    {% for work in creator.pinned_works_list|slice:":5" %}
+                                        <a href="{% url 'work_detail' work.pk %}" class="work-card">
+                                            {% if work.thumbnail %}
+                                                <img src="{{ work.thumbnail.url }}" alt="{{ work.title }}">
+                                            {% elif work.image %}
+                                                <img src="{{ work.image.url }}" alt="{{ work.title }}">
+                                            {% elif work.video %}
+                                                <div class="media-placeholder">🎬</div>
+                                            {% elif work.audio %}
+                                                <div class="media-placeholder">🎵</div>
+                                            {% endif %}
+                                            <div class="work-info">
+                                                <div class="work-title">{{ work.title }}</div>
+                                                <div class="work-meta">
+                                                    ❤️ {{ work.likes.count }} &nbsp;|&nbsp; 💬 {{ work.comments.count }}
+                                                </div>
+                                            </div>
+                                        </a>
                                     {% endfor %}
                                 </div>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    {% if creator.pinned_works_list %}
-                        <div class="pinned-section">
-                            <div class="pinned-title">📌 Закреплённые работы</div>
-                            <div class="pinned-scroll">
-                                {% for work in creator.pinned_works_list %}
-                                    <a href="{% url 'work_detail' work.pk %}" class="work-card">
-                                        {% if work.thumbnail %}
-                                            <img src="{{ work.thumbnail.url }}" alt="{{ work.title }}">
-                                        {% elif work.image %}
-                                            <img src="{{ work.image.url }}" alt="{{ work.title }}">
-                                        {% elif work.video %}
-                                            <div class="media-placeholder">🎬</div>
-                                        {% elif work.audio %}
-                                            <div class="media-placeholder">🎵</div>
-                                        {% endif %}
-                                        <div class="work-info">
-                                            <div class="work-title">{{ work.title }}</div>
-                                            <div class="work-meta">
-                                                ❤️ {{ work.likes.count }} &nbsp;|&nbsp; 💬 {{ work.comments.count }}
-                                            </div>
-                                        </div>
-                                    </a>
-                                {% endfor %}
                             </div>
-                        </div>
-                    {% endif %}
-                </div>
-            {% empty %}
-                <div class="empty-state">
-                    <h2>Никого не найдено</h2>
-                    <p>Попробуйте изменить фильтры или поисковый запрос.</p>
-                </div>
-            {% endfor %}
-
-            <!-- ПАГИНАЦИЯ (внутри общего блока) -->
-            {% if page_obj.has_other_pages %}
-                <div class="pagination" style="margin-bottom: 1rem;">
-                    {% if page_obj.has_previous %}
-                        <a href="?page={{ page_obj.previous_page_number }}{% if filter_query %}&{{ filter_query }}{% endif %}">← Назад</a>
-                    {% endif %}
-
-                    {% for num in page_obj.paginator.page_range %}
-                        {% if num == page_obj.number %}
-                            <span class="current">{{ num }}</span>
-                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                            <a href="?page={{ num }}{% if filter_query %}&{{ filter_query }}{% endif %}">{{ num }}</a>
                         {% endif %}
-                    {% endfor %}
+                    </div>
+                {% empty %}
+                    <div class="empty-state">
+                        <h2>Никого не найдено</h2>
+                        <p>Попробуйте изменить фильтры или поисковый запрос.</p>
+                    </div>
+                {% endfor %}
 
-                    {% if page_obj.has_next %}
-                        <a href="?page={{ page_obj.next_page_number }}{% if filter_query %}&{{ filter_query }}{% endif %}">Вперёд →</a>
-                    {% endif %}
-                </div>
-            {% endif %}
+                <!-- ПАГИНАЦИЯ (внутри общего блока) -->
+                {% if page_obj.has_other_pages %}
+                    <div class="pagination" style="margin-bottom: 1rem;">
+                        {% if page_obj.has_previous %}
+                            <a href="?page={{ page_obj.previous_page_number }}{% if filter_query %}&{{ filter_query }}{% endif %}">← Назад</a>
+                        {% endif %}
 
-        </div> <!-- Конец main-box -->
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if num == page_obj.number %}
+                                <span class="current">{{ num }}</span>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <a href="?page={{ num }}{% if filter_query %}&{{ filter_query }}{% endif %}">{{ num }}</a>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}{% if filter_query %}&{{ filter_query }}{% endif %}">Вперёд →</a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
     </div>
 
     <!-- jQuery (нужен для Select2) -->

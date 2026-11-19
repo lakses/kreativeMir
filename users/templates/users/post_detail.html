@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Пост от {{ post.author.username }}</title>
+    <style>
+        /* Общий фон страницы */
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #f4f7f6; 
+            margin: 0; 
+            padding: 2rem 1rem; 
+            color: #333;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        /* Главный контейнер */
+        .container { 
+            width: 100%; 
+            max-width: 1100px; 
+        }
+
+        /* Ссылка "Назад" */
+        .back-link {
+            display: inline-block;
+            color: #3b82f6; /* Синий цвет */
+            text-decoration: none;
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .back-link:hover { color: #2563eb; text-decoration: underline; }
+
+        /* Сетка из двух колонок (Insta-style) */
+        .post-layout {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr; /* Левая колонка шире */
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        /* Общие стили для карточек */
+        .card { 
+            background: white; 
+            border-radius: 12px; 
+            box-shadow: 0 8px 24px rgba(0,0,0,0.06); 
+            overflow: hidden;
+        }
+
+        /* --- ЛЕВАЯ КОЛОНКА --- */
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .media-container {
+            background: #f8f9fa; /* Светлый фон для текстовых постов */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+            max-height: 70vh;
+            overflow: hidden;
+            border-bottom: 1px solid #eee;
+        }
+
+        .media-container img { 
+            width: 100%; 
+            max-height: 70vh; 
+            object-fit: contain; 
+            display: block;
+        }
+
+        /* Заглушка для текстовых постов без картинки */
+        .text-placeholder {
+            padding: 3rem;
+            text-align: center;
+            color: #888;
+            font-size: 1.2rem;
+            font-style: italic;
+            line-height: 1.6;
+        }
+
+        .post-info {
+            padding: 1.5rem;
+        }
+
+        .post-title { margin: 0 0 0.5rem 0; font-size: 1.5rem; color: #222; }
+        .post-author { color: #666; font-size: 0.95rem; margin-bottom: 1.5rem; }
+        .post-author b { color: #333; }
+        .post-author a { color: #3b82f6; text-decoration: none; }
+        .post-author a:hover { text-decoration: underline; }
+
+        /* Кнопка лайка */
+        .btn-like { 
+            padding: 0.6rem 1.2rem; 
+            border: 1px solid #ddd; 
+            border-radius: 20px; 
+            cursor: pointer; 
+            font-size: 1rem; 
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+        }
+        .btn-like-inactive { background: #f8f9fa; color: #555; }
+        .btn-like-inactive:hover { background: #e9ecef; color: #333; }
+        .btn-like-active { background: #ffe3e3; color: #dc3545; border-color: #ffb3b3; }
+        .btn-like-active:hover { background: #ffcccc; }
+
+        /* --- ПРАВАЯ КОЛОНКА (Комментарии) --- */
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 120px);
+            max-height: 800px;
+            position: sticky;
+            top: 2rem;
+        }
+
+        .description-section {
+            padding: 1.5rem;
+            border-bottom: 1px solid #eee;
+            background: #fafafa;
+            flex-shrink: 0;
+        }
+
+        .description-text { font-size: 1rem; line-height: 1.5; color: #333; margin: 0; white-space: pre-wrap; }
+
+        .comments-section {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+        }
+
+        .comment-item { 
+            display: flex; 
+            gap: 1rem; 
+            margin-bottom: 1.5rem; 
+            align-items: flex-start; 
+        }
+
+        .comment-avatar {
+            width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid #ddd;
+        }
+
+        .comment-avatar-placeholder {
+            width: 40px; height: 40px; border-radius: 50%; background: #6c757d; color: white; 
+            display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.1rem;
+        }
+
+        .comment-content { flex: 1; }
+        .comment-author { font-size: 0.9rem; font-weight: 600; color: #333; margin-right: 0.5rem; text-decoration: none;}
+        .comment-date { color: #aaa; font-size: 0.75rem; }
+        .comment-text { font-size: 0.95rem; color: #444; line-height: 1.4; margin-top: 0.2rem; }
+
+        /* Форма добавления */
+        .comment-form-area {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid #eee;
+            background: #fff;
+            flex-shrink: 0;
+        }
+
+        .comment-form-area form {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .comment-form-area textarea {
+            flex-grow: 1;
+            padding: 0.8rem;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            resize: none;
+            height: 44px;
+            box-sizing: border-box;
+        }
+        .comment-form-area textarea:focus {
+            border-color: #3b82f6; outline: none;
+        }
+
+        .btn-send {
+            background: #3b82f6; color: white; border: none; border-radius: 20px;
+            padding: 0 1.2rem; font-weight: 600; cursor: pointer; transition: background 0.2s;
+        }
+        .btn-send:hover { background: #2563eb; }
+
+        /* Адаптивность */
+        @media (max-width: 850px) {
+            .post-layout { grid-template-columns: 1fr; }
+            .right-panel { height: auto; max-height: none; position: static; }
+            .comments-section { max-height: 400px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <a href="javascript:history.back()" class="back-link">← Назад</a>
+
+        <div class="post-layout">
+            
+            <!-- ЛЕВАЯ ПАНЕЛЬ: Медиа и Инфо -->
+            <div class="card left-panel">
+                <div class="media-container">
+                    {% if post.image %}
+                        <img src="{{ post.image.url }}" alt="Изображение к посту">
+                    {% else %}
+                        <!-- Если картинки нет, выводим заглушку -->
+                        <div class="text-placeholder">
+                            Текстовый пост<br>без изображения
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="post-info">
+                    <h1 class="post-title">Пост</h1>
+                    <div class="post-author">
+                        Автор: <b><a href="{% url 'profile_detail' post.author.username %}">{{ post.author.username }}</a></b>
+                    </div>
+                    
+                    <!-- Форма лайка (работает, если во view передается is_liked) -->
+                    <form method="post" style="margin: 0;">
+                        {% csrf_token %}
+                        <button type="submit" name="like" class="btn-like {% if is_liked %}btn-like-active{% else %}btn-like-inactive{% endif %}">
+                            {% if is_liked %}
+                                ❤️ Вам нравится ({{ post.likes.count }})
+                            {% else %}
+                                🤍 Нравится ({{ post.likes.count }})
+                            {% endif %}
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ПРАВАЯ ПАНЕЛЬ: Описание и Комментарии -->
+            <div class="card right-panel">
+                
+                <!-- Текст поста -->
+                {% if post.text %}
+                    <div class="description-section">
+                        <p class="description-text">{{ post.text }}</p>
+                    </div>
+                {% endif %}
+
+                <!-- Список комментариев -->
+                <div class="comments-section">
+                    {% for comment in comments %}
+                        <div class="comment-item">
+                            <div>
+                                {% if comment.author.avatar %}
+                                    <img src="{{ comment.author.avatar.url }}" alt="Аватар" class="comment-avatar">
+                                {% else %}
+                                    <div class="comment-avatar-placeholder">
+                                        {{ comment.author.username|first|upper }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="comment-content">
+                                <div>
+                                    <a href="{% url 'profile_detail' comment.author.username %}" class="comment-author">{{ comment.author.username }}</a>
+                                    <span class="comment-date">{{ comment.created_at|date:"d.m.Y H:i" }}</span>
+                                </div>
+                                <div class="comment-text">
+                                    {{ comment.text|linebreaksbr }}
+                                </div>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div style="text-align: center; color: #888; margin-top: 2rem;">
+                            Пока нет комментариев.<br>Будь первым!
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Форма добавления комментария -->
+                <div class="comment-form-area">
+                    <form method="post">
+                        {% csrf_token %}
+                        <textarea name="text" placeholder="Добавьте комментарий..." required></textarea>
+                        <button type="submit" name="comment" class="btn-send">➤</button>
+                    </form>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>

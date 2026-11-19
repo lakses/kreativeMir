@@ -18,7 +18,7 @@
             min-height: 100vh;
         }
 
-        /* --- ВЕРХНЯЯ ПАНЕЛЬ (СИНЯЯ + ЗЕЛЕНАЯ) --- */
+        /* --- ВЕРХНЯЯ ПАНЕЛЬ --- */
         .header-wrapper {
             position: fixed;
             top: 0;
@@ -28,19 +28,18 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             transition: top 0.3s ease-in-out;
         }
+        .header-wrapper.hidden-nav { top: -80px; }
 
-        .header-wrapper.hidden-nav {
-            top: -150px;
-        }
-
-        /* Синяя полоса */
-        .top-nav-blue {
-            background: linear-gradient(to right, #5b86e5, #36d1dc);
-            height: 60px;
+        /* ТЕМНО-СИНЯЯ ПОЛОСА (вместо зеленой и синей) */
+        .top-nav-dark {
+            background: linear-gradient(to right, #1e3a8a, #3b82f6);
+            height: 70px;
             display: flex;
             align-items: center;
             padding: 0 2rem;
             box-sizing: border-box;
+            justify-content: center;   /* ← кнопки по центру */
+            position: relative;        /* ← якорь для абсолютного бренда */
         }
 
         .brand {
@@ -48,104 +47,29 @@
             font-size: 2.2rem;
             color: #fff;
             text-decoration: none;
-            margin-right: 2rem;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+            position: absolute;   /* ← бренд вынимается из потока */
+            left: 2rem;           /* ← и остаётся ровно там, где был */
         }
-
-        .top-search-form {
-            flex-grow: 1;
-            max-width: 500px;
-        }
-
+        .top-search-form { flex-grow: 1; max-width: 300px; margin: 0 2rem; }
         .top-search-form input {
-            width: 100%;
-            padding: 0.6rem 1.2rem;
-            border-radius: 20px;
-            border: none;
-            outline: none;
-            font-size: 0.95rem;
-            background: rgba(255, 255, 255, 0.9);
-            box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+            width: 100%; padding: 0.5rem 1rem; border-radius: 20px; border: none;
+            font-size: 0.9rem; background: rgba(255, 255, 255, 0.2); color: white;
         }
+        .top-search-form input::placeholder { color: rgba(255,255,255,0.7); }
 
-        /* Зеленая полоса (Меню) */
-        .top-nav-green {
-            background-color: #28a745;
-            height: 60px;
-            display: flex;
-            align-items: center;
-            padding: 0 2rem;
-            box-sizing: border-box;
+        /* Кнопки для чужого профиля в шапке */
+        .nav-links-header { display: flex; gap: 0.5rem; align-items: center; }
+        .nav-links-header a {
+            color: #fff; text-decoration: none; font-size: 0.9rem; font-weight: 500;
+            padding: 0.5rem 1rem; border-radius: 6px; transition: background 0.2s;
         }
+        .nav-links-header a:hover { background: rgba(255,255,255,0.1); }
 
-        .nav-links {
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-            width: 100%;
-            max-width: 1100px;
-            margin: 0 auto;
-        }
-
-        .nav-links a {
-            color: #28a745;
-            background: #fff;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.9rem;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            transition: all 0.2s;
-            white-space: nowrap;
-            border: 1px solid #fff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-
-        .nav-links a:hover {
-            background: #f8f9fa;
-            color: #1e7e34;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-
-        .nav-links a.active {
-            background: #155724;
-            color: #fff;
-            border-color: #155724;
-        }
-
-        .nav-auth {
-            margin-left: auto;
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-        }
-        
-        .btn-nav-upload { box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-
-        .nav-logout {
-            background: #fff;
-            border: 1px solid #fff;
-            color: #dc3545;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.9rem;
-            transition: all 0.2s;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-
-        .nav-logout:hover {
-            background: #fff5f5;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-
-        /* --- ОБЕРТКА ДЛЯ ЦЕНТРИРОВАНИЯ --- */
+        /* --- ОБЕРТКА --- */
         .layout-wrapper {
             max-width: 1100px;
-            margin: 140px auto 20px auto; 
+            margin: 100px auto 20px auto; 
             display: flex;
             gap: 20px;
             padding: 0 20px;
@@ -153,15 +77,11 @@
             justify-content: center; 
         }
 
-        .layout-wrapper.layout-own {
-            margin-top: 80px;
-        }
-
         /* --- БОКОВОЕ МЕНЮ --- */
         .sidebar {
             position: sticky; 
             top: 90px;
-            width: 240px;
+            width: 250px;
             flex-shrink: 0;
             height: calc(100vh - 110px);
             background: #fff;
@@ -169,134 +89,94 @@
             box-shadow: 0 8px 24px rgba(0,0,0,0.1);
             padding: 1.5rem;
             box-sizing: border-box;
-            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
         }
 
         .sidebar-profile {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-decoration: none;
-            color: #333;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid #eee;
+            display: flex; flex-direction: column; align-items: center;
+            text-decoration: none; color: #333; margin-bottom: 1.5rem;
+            padding-bottom: 1rem; border-bottom: 1px solid #eee;
         }
-
-        .sidebar-avatar {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            object-fit: cover;
-            background: #e9ecef;
-            margin-bottom: 0.8rem;
-            border: 2px solid #5b86e5;
-        }
-
+        .sidebar-avatar { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; background: #e9ecef; margin-bottom: 0.8rem; border: 2px solid #3b82f6; }
         .sidebar-username { font-weight: 600; font-size: 1.1rem; }
         .sidebar-email { font-size: 0.8rem; color: #888; }
 
-        .nav-menu { display: flex; flex-direction: column; gap: 0.5rem; }
-
+        .nav-menu { display: flex; flex-direction: column; gap: 0.5rem; flex-grow: 1; }
         .nav-menu a {
-            display: block;
-            padding: 0.7rem 1rem;
-            border-radius: 8px;
-            text-decoration: none;
-            color: #444;
-            border: 1px solid #ddd;
-            font-weight: 500;
-            transition: all 0.2s;
-            font-size: 0.95rem;
+            display: block; padding: 0.7rem 1rem; border-radius: 8px; text-decoration: none;
+            color: #444; border: 1px solid #ddd; font-weight: 500; transition: all 0.2s; font-size: 0.95rem;
         }
-
         .nav-menu a:hover { background: #f8f9fa; border-color: #ccc; }
         .nav-menu a.active { background: #fff5d1; border-color: #ffe48a; color: #333; font-weight: 600; }
 
+        .sidebar-logout {
+            margin-top: auto; /* Прижимает кнопку к низу */
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+        }
+        .btn-logout {
+            width: 100%; padding: 0.7rem; background: #fff; border: 1px solid #dc3545;
+            color: #dc3545; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.2s;
+        }
+        .btn-logout:hover { background: #dc3545; color: #fff; }
+
         /* --- ЦЕНТРАЛЬНАЯ ЧАСТЬ --- */
-        .main-content {
-            flex-grow: 1;
-            max-width: 850px;
-            width: 100%;
-        }
+        .main-content { flex-grow: 1; max-width: 800px; width: 100%; }
+        .card { background: #fff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); padding: 2rem; box-sizing: border-box; }
 
-        .card {
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            padding: 2rem;
-            box-sizing: border-box; 
-        }
-
-        .profile-header {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .main-avatar {
-            width: 110px;
-            height: 110px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid #fff;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
+        /* --- ПРОФИЛЬ --- */
+        .profile-header { display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 2rem; }
+        .main-avatar { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 1rem; }
         .avatar-placeholder { display: flex; align-items: center; justify-content: center; background: #e9ecef; color: #adb5bd; font-size: 0.9rem; }
-
+        
         .profile-title { margin: 0 0 0.2rem 0; font-size: 1.8rem; color: #222; }
         .profile-realname { margin: 0 0 0.5rem 0; color: #666; font-size: 0.95rem; }
-
-        .badges-container { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.8rem; }
+        
+        .stats-row { display: flex; justify-content: center; gap: 1.5rem; font-size: 0.9rem; color: #555; font-weight: 500; margin-bottom: 1rem; }
+        
+        .badges-container { display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; margin-bottom: 0.8rem; }
         .badge { padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
         .badge-orders { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
         .badge-collab { background: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; }
 
-        .user-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+        .user-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: center; }
         .user-tag { background: #e9ecef; color: #495057; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.8rem; font-weight: 500; }
 
-        .stats-row {
-            display: flex;
-            gap: 1rem;
-            font-size: 0.9rem;
-            color: #555;
-            font-weight: 500;
-            margin-top: 0.5rem;
+        /* Кнопки действий по центру (как на макете) */
+        .action-buttons { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem; }
+        .btn-main-action {
+            display: block; 
+            width: 100%; 
+            padding: 1rem; 
+            background: #fff; 
+            border: 1px solid #ddd;
+            border-radius: 8px; 
+            text-align: center; 
+            font-size: 1rem; 
+            font-weight: 600;
+            color: #333; 
+            cursor: pointer; 
+            text-decoration: none; 
+            transition: background 0.2s;
+            box-sizing: border-box;   /* ← фикс: padding и border не выходят за 100% */
+            font-family: inherit;     /* ← фикс: единый шрифт с сайтом */
         }
+        .btn-main-action:hover { background: #f8f9fa; }
+        
+        .btn-main-action.yellow { color: #856404; background: #fff3cd; border-color: #ffeeba; }
+        .btn-main-action.blue { color: #1565c0; background: #e3f2fd; border-color: #bbdefb; }
 
-        .section-divider {
-            border-top: 1px solid #eee;
-            margin: 1.5rem 0;
-        }
-
-        .bio-contacts-block { margin-bottom: 0.5rem; }
-        .bio-text { font-size: 1rem; line-height: 1.5; color: #444; margin-bottom: 1rem; }
+        /* --- РАЗДЕЛИТЕЛИ И КОНТАКТЫ --- */
+        .section-divider { border-top: 1px solid #eee; margin: 2rem 0; }
+        .bio-text { font-size: 1rem; line-height: 1.5; color: #444; margin-bottom: 1rem; text-align: left; }
         .contacts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
-        .contact-item { background: #f8f9fa; padding: 0.8rem; border-radius: 8px; border: 1px solid #e9ecef; }
+        .contact-item { background: #f8f9fa; padding: 0.8rem; border-radius: 8px; border: 1px solid #e9ecef; text-align: left; }
         .contact-label { font-size: 0.75rem; color: #888; margin-bottom: 0.2rem; text-transform: uppercase; font-weight: 600; }
         .contact-value { font-weight: 600; font-size: 0.9rem; word-break: break-all; }
         .contact-value a { color: #007bff; text-decoration: none; }
 
-        .btn-main-action {
-            display: block;
-            width: 100%;
-            padding: 1rem;
-            background: #fff;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            text-align: left;
-            font-size: 1rem;
-            font-weight: 500;
-            color: #333;
-            cursor: pointer;
-            text-decoration: none;
-            margin-bottom: 0.8rem;
-            transition: background 0.2s;
-            box-sizing: border-box;
-        }
-        .btn-main-action:hover { background: #f8f9fa; }
-
+        /* --- РАБОТЫ --- */
         .works-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1.2rem; }
         .work-card { background: #fff; border: 1px solid #eee; border-radius: 10px; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s; position: relative; }
         .work-card:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,0.1); }
@@ -305,69 +185,96 @@
         .work-title { display: block; text-decoration: none; color: #333; font-weight: 600; margin-bottom: 0.3rem; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .work-meta { font-size: 0.8rem; color: #888; }
 
+        /* --- ВЫПАДАЮЩИЕ ПОСТЫ (АККОРДЕОН) --- */
+        .posts-accordion { border: 1px solid #eee; border-radius: 10px; overflow: hidden; }
+        .posts-header {
+            padding: 1rem 1.5rem; background: #f8f9fa; cursor: pointer;
+            display: flex; justify-content: space-between; align-items: center; font-weight: 600; color: #444;
+        }
+        .posts-header:hover { background: #f1f3f5; }
+        .posts-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; background: #fff; padding: 0 1.5rem; }
+        .posts-content.open { max-height: 2000px; padding-bottom: 1.5rem; }
+
+        /* Стили постов */
+        .post-card { border-bottom: 1px solid #eee; padding: 1rem 0; }
+        .post-card:last-child { border-bottom: none; }
+        .post-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+        .post-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+        .post-avatar-placeholder { width: 40px; height: 40px; border-radius: 50%; background: #6c757d; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .post-action-btn { background: none; border: none; cursor: pointer; font-size: 0.95rem; color: #666; display: flex; align-items: center; gap: 0.4rem; padding: 0; }
+        .post-action-btn:hover { color: #333; }
+
+        /* Редактирование профиля */
         .edit-form-container {
-            display: none;
-            padding: 1.5rem;
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            padding: 0;
+            margin-top: -1rem;            /* отменяет один flex-gap, чтобы в закрытом виде кнопки «Редактировать» и «Настройки» стояли так же плотно, как раньше */
             background: #f8f9fa;
             border-radius: 8px;
-            margin-top: 1rem;
-            border: 1px solid #eee;
+            outline: 1px solid transparent;
+            outline-offset: -1px;
+            text-align: left;
+            box-sizing: border-box;
+            transition: max-height 0.4s ease,
+                        opacity 0.3s ease,
+                        margin-top 0.3s ease,
+                        padding 0.3s ease,
+                        outline-color 0.3s ease;
         }
-        .edit-form-container.active { display: block; }
-        
-        form p { margin-bottom: 1rem; text-align: left; }
+        .edit-form-container.active {
+            max-height: 1200px;           /* с запасом под все поля формы */
+            opacity: 1;
+            padding: 1.5rem;
+            margin-top: 0;
+            outline-color: #eee;
+        }
+        form p { margin-bottom: 1rem; }
         form label { font-size: 0.9rem; color: #555; font-weight: 500; }
         input[type="text"], input[type="email"], input[type="file"], input[type="url"], textarea { width: 100%; padding: 0.75rem; margin-top: 0.4rem; box-sizing: border-box; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95rem; font-family: inherit; }
         input:focus, textarea:focus { border-color: #28a745; outline: none; }
         .btn-primary { padding: 0.7rem 1.5rem; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; font-weight: 500; }
-        
+
         @media (max-width: 900px) {
-            .nav-links { overflow-x: auto; padding-bottom: 5px; }
-            .nav-auth { display: none; }
             .layout-wrapper { flex-direction: column; align-items: center; }
-            .sidebar { display: none; }
+            .sidebar { display: none !important; }
+            .top-nav-dark { flex-wrap: wrap; height: auto; padding: 1rem; }
         }
     </style>
 </head>
 <body>
 
-    <!-- ВЕРХНЯЯ ПАНЕЛЬ -->
+    <!-- ВЕРХНЯЯ ПАНЕЛЬ (ЕДИНАЯ ТЕМНО-СИНЯЯ) -->
     <header class="header-wrapper" id="mainHeader">
-        <div class="top-nav-blue">
-            <a href="{% url 'profile' %}" class="brand">КреативМир</a>
-            <form method="GET" action="{% url 'creators_list' %}" class="top-search-form">
-                <input type="text" name="q" placeholder="Поиск авторов по нику..." value="{{ request.GET.q|default:'' }}">
-            </form>
-        </div>
-        
-        <!-- Зеленая полоса (Для чужого профиля) -->
-        {% if not is_own_profile %}
-        <div class="top-nav-green">
-            <div class="nav-links">
-                <a href="{% url 'profile' %}">Главная</a>
+        <div class="top-nav-dark">
+            <a href="{% url 'feed' %}" class="brand">КреативМир</a>
+            
+            
+            <!-- Кнопки в шапке (показываются только в ЧУЖОМ профиле) -->
+            {% if not is_own_profile %}
+            <div class="nav-links-header">
+                <a href="{% url 'feed' %}">Главная</a>
                 <a href="#">Сообщество</a>
-                <a href="#">Партнерство</a>
+                <a href="{% url 'feed' %}">Лента</a> <!-- Заглушка или ссылка на ленту -->
                 <a href="{% url 'creators_list' %}">Авторы</a>
                 <a href="#">События</a>
-                <!-- Ссылка на чат с красным фоном при наличии непрочитанных -->
-                <a href="{% url 'chat_list' %}" style="{% if unread_messages_count > 0 %}background: #dc3545 !important; color: white !important; border-color: #dc3545;{% endif %}">
-                    Чат {% if unread_messages_count > 0 %}<span style="background:white; color:#dc3545; border-radius:50%; padding:0 6px; margin-left:5px; font-size:0.8rem; font-weight:bold;">{{ unread_messages_count }}</span>{% endif %}
-                </a>
-                
-                <div class="nav-auth">
-                    <a href="{% url 'upload_work' %}" class="btn-nav-upload">+ Загрузить</a>
-                    <form method="post" action="{% url 'logout' %}" style="margin: 0;">
-                        {% csrf_token %}
-                        <button type="submit" class="nav-logout">Выйти</button>
-                    </form>
-                </div>
+                <a href="{% url 'chat_list' %}" 
+                    style="{% if unread_messages_count > 0 %}background: #003180; color: #ffffff; border-color: #ef4444; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);{% endif %}">
+                        Чаты 
+                        {% if unread_messages_count > 0 %}
+                            <span style="background: #ffffff; color: #ef4444; border-radius: 50%; padding: 2px 7px; font-size: 0.8rem; margin-left: 5px; font-weight: bold;">{{ unread_messages_count }}</span>
+                        {% endif %}
+                    </a>
+                <a href="{% url 'upload_work' %}">+ Загрузить</a>
             </div>
+            {% endif %}
         </div>
-        {% endif %}
     </header>
 
-    <div class="layout-wrapper {% if is_own_profile %}layout-own{% endif %}">
+    <div class="layout-wrapper">
         
+        <!-- САЙДБАР (Только для СВОЕГО профиля) -->
         {% if is_own_profile %}
         <aside class="sidebar">
             <a href="{% url 'profile' %}" class="sidebar-profile">
@@ -383,17 +290,29 @@
             <nav class="nav-menu">
                 <a href="{% url 'profile' %}" class="active">Главная</a>
                 <a href="#">Сообщество</a>
-                <a href="#">Партнерство</a>
+                <a href="{% url 'feed' %}">Лента</a>
                 <a href="{% url 'creators_list' %}">Авторы</a>
                 <a href="#">События</a>
-                <!-- Ссылка на чат в сайдбаре -->
-                <a href="{% url 'chat_list' %}" style="{% if unread_messages_count > 0 %}background: #dc3545; color: white; border-color: #dc3545;{% endif %}">
-                    Чат {% if unread_messages_count > 0 %}<span style="background:white; color:#dc3545; border-radius:50%; padding:0 6px; margin-left:5px; font-size:0.8rem; font-weight:bold;">{{ unread_messages_count }}</span>{% endif %}
-                </a>
+                <a href="{% url 'chat_list' %}" 
+                    style="{% if unread_messages_count > 0 %}background: #003180; color: #ffffff; border-color: #ffffff; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);{% endif %}">
+                        Чаты 
+                        {% if unread_messages_count > 0 %}
+                            <span style="background: #ffffff; color: #ef4444; border-radius: 50%; padding: 2px 7px; font-size: 0.8rem; margin-left: 5px; font-weight: bold;">{{ unread_messages_count }}</span>
+                        {% endif %}
+                    </a>
             </nav>
+
+            <!-- Кнопка выйти в самом низу -->
+            <div class="sidebar-logout">
+                <form method="post" action="{% url 'logout' %}" style="margin: 0;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-logout">Выйти</button>
+                </form>
+            </div>
         </aside>
         {% endif %}
 
+        <!-- ЦЕНТРАЛЬНЫЙ БЛОК -->
         <main class="main-content">
             
             {% if messages %}
@@ -405,6 +324,8 @@
             {% endif %}
 
             <div class="card">
+                
+                <!-- Профиль (Аватар, Имя, Стата) -->
                 <div class="profile-header">
                     {% if user.avatar %}
                         <img src="{{ user.avatar.url }}" alt="Аватар" class="main-avatar">
@@ -412,114 +333,102 @@
                         <div class="main-avatar avatar-placeholder">Нет фото</div>
                     {% endif %}
                     
-                    <div>
-                        <h1 class="profile-title">{{ user.username }}</h1>
-                        <p class="profile-realname">{{ user.first_name }} {{ user.last_name }}</p>
-                        
-                        <div class="stats-row">
-                            <span>❤️ {{ profile_likes_count }} лайков</span>
-                            <span>✅ {{ approved_works.count }} работ</span>
-                            {% if is_own_profile %}
-                                <span>⏳ {{ pending_works.count }} на модерации</span>
-                            {% endif %}
-                        </div>
-
-                        <div class="badges-container" style="margin-top: 0.8rem;">
-                            {% if user.available_for_orders %}
-                                <span class="badge badge-orders">🟢 Могу брать заказы</span>
-                            {% endif %}
-                            {% if user.open_to_collaboration %}
-                                <span class="badge badge-collab">🤝 Готов к сотрудничеству</span>
-                            {% endif %}
-                        </div>
-
-                        {% if user.tags.all %}
-                            <div class="user-tags" style="margin-top: 0.5rem;">
-                                {% for tag in user.tags.all %}
-                                    <span class="user-tag">#{{ tag.name }}</span>
-                                {% endfor %}
-                            </div>
+                    <h1 class="profile-title">{{ user.username }}</h1>
+                    <p class="profile-realname">{{ user.first_name }} {{ user.last_name }} • {{ user.email }}</p>
+                    
+                    <div class="stats-row">
+                        <span>❤️ {{ profile_likes_count }} лайков</span>
+                        <span>✅ {{ approved_works.count }} работ</span>
+                        {% if is_own_profile %}
+                            <span>⏳ {{ pending_works.count }} на модерации</span>
                         {% endif %}
                     </div>
+
+                    <div class="badges-container">
+                        {% if user.available_for_orders %}
+                            <span class="badge badge-orders">🟢 Могу брать заказы</span>
+                        {% endif %}
+                        {% if user.open_to_collaboration %}
+                            <span class="badge badge-collab">🤝 Готов к сотрудничеству</span>
+                        {% endif %}
+                    </div>
+
+                    {% if user.tags.all %}
+                        <div class="user-tags">
+                            {% for tag in user.tags.all %}
+                                <span class="user-tag">#{{ tag.name }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
 
-                <!-- БЛОК ДЕЙСТВИЙ -->
-                {% if is_own_profile %}
-                    <button class="btn-main-action" onclick="toggleEditForm()">Редактировать профиль</button>
-                    <a href="{% url 'manage_quiz' %}" class="btn-main-action" style="text-align:center; color: #856404; background: #fff3cd; border-color: #ffeeba;">⚙️ Настроить квиз для заказчиков</a>
-                    
-                    <div class="edit-form-container" id="editFormContainer">
-                        <form method="post" enctype="multipart/form-data">
-                            {% csrf_token %}
-                            {{ form.as_p }}
-                            <button type="submit" class="btn-primary">Сохранить изменения</button>
-                        </form>
-                    </div>
-                {% else %}
-                    <!-- Кнопка Коллаборации (если автор готов) -->
-                    {% if user.open_to_collaboration %}
-                        <a href="{% url 'start_chat' user.id %}?collab=true" class="btn-main-action" style="background: #e3f2fd; border-color: #bbdefb; color: #1565c0; font-weight: 600; text-align: center; margin-bottom: 0.8rem;">
-                            🤝 Предложить сотрудничество
-                        </a>
-                    {% endif %}
-
-                    <!-- Кнопка Связаться / Квиз -->
-                    {% if user.quiz_questions.exists %}
-                        <button onclick="document.getElementById('quizModal').style.display='block'" class="btn-main-action" style="background: #fff3cd; border-color: #ffeeba; color: #856404; font-weight: 600; text-align: center;">
-                            📩 Связаться с автором (Пройти тест)
-                        </button>
+                <!-- БЛОК ДЕЙСТВИЙ (Как на макете) -->
+                <div class="action-buttons">
+                    {% if is_own_profile %}
+                        <!-- Свой профиль -->
+                        <button class="btn-main-action" onclick="toggleEditForm()">Редактировать профиль</button>
+                        <a href="{% url 'manage_quiz' %}" class="btn-main-action">Настройки (Квиз)</a>
+                        
+                        <div class="edit-form-container" id="editFormContainer">
+                            <form method="post" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <input type="hidden" name="edit_profile" value="1">
+                                {{ form.as_p }}
+                                <button type="submit" class="btn-primary">Сохранить изменения</button>
+                            </form>
+                        </div>
                     {% else %}
-                        <a href="{% url 'start_chat' user.id %}" class="btn-main-action" style="background: #e3f2fd; border-color: #bbdefb; color: #1565c0; font-weight: 600; text-align: center;">
-                            📩 Связаться с автором
-                        </a>
+                        <!-- Чужой профиль -->
+                        {% if user.open_to_collaboration %}
+                            <a href="{% url 'start_chat' user.id %}?collab=true" class="btn-main-action blue">
+                                🤝 Предложить сотрудничество
+                            </a>
+                        {% endif %}
+
+                        {% if user.quiz_questions.exists %}
+                            <button onclick="document.getElementById('quizModal').style.display='block'" class="btn-main-action yellow">
+                                📩 Связаться с автором (Пройти тест)
+                            </button>
+                        {% else %}
+                            <a href="{% url 'start_chat' user.id %}" class="btn-main-action blue">
+                                📩 Связаться с автором
+                            </a>
+                        {% endif %}
                     {% endif %}
-                {% endif %}
+                </div>
 
                 <div class="section-divider"></div>
 
+                <!-- О СЕБЕ И КОНТАКТЫ -->
                 <div class="bio-contacts-block">
-                    <h2 style="margin-top: 0; font-size: 1.2rem; color: #444; margin-bottom: 1rem;">О себе и контакты</h2>
+                    <h2 style="margin-top: 0; font-size: 1.2rem; color: #444; margin-bottom: 1rem; text-align: left;">О себе и контакты</h2>
                     
                     {% if user.bio %}
                         <p class="bio-text">{{ user.bio|linebreaksbr }}</p>
                     {% else %}
-                        <p style="color: #888; font-style: italic; margin-bottom: 1rem;">Описание профиля пока не заполнено.</p>
+                        <p style="color: #888; font-style: italic; margin-bottom: 1rem; text-align: left;">Описание профиля пока не заполнено.</p>
                     {% endif %}
 
                     <div class="contacts-grid">
                         {% if user.phone %}
-                            <div class="contact-item">
-                                <div class="contact-label">Телефон</div>
-                                <div class="contact-value">{{ user.phone }}</div>
-                            </div>
+                            <div class="contact-item"><div class="contact-label">Телефон</div><div class="contact-value">{{ user.phone }}</div></div>
                         {% endif %}
-                        
                         {% if user.contact_method %}
-                            <div class="contact-item">
-                                <div class="contact-label">Способ связи</div>
-                                <div class="contact-value">{{ user.contact_method }}</div>
-                            </div>
+                            <div class="contact-item"><div class="contact-label">Способ связи</div><div class="contact-value">{{ user.contact_method }}</div></div>
                         {% endif %}
-                        
                         {% if user.github_url %}
-                            <div class="contact-item">
-                                <div class="contact-label">GitHub</div>
-                                <div class="contact-value"><a href="{{ user.github_url }}" target="_blank">Перейти</a></div>
-                            </div>
+                            <div class="contact-item"><div class="contact-label">GitHub</div><div class="contact-value"><a href="{{ user.github_url }}" target="_blank">Перейти</a></div></div>
                         {% endif %}
-                        
                         {% if user.website_url %}
-                            <div class="contact-item">
-                                <div class="contact-label">Сайт</div>
-                                <div class="contact-value"><a href="{{ user.website_url }}" target="_blank">Перейти</a></div>
-                            </div>
+                            <div class="contact-item"><div class="contact-label">Сайт</div><div class="contact-value"><a href="{{ user.website_url }}" target="_blank">Перейти</a></div></div>
                         {% endif %}
                     </div>
                 </div>
 
                 <div class="section-divider"></div>
 
-                <div>
+                <!-- БЛОК РАБОТ (Добавил id="works-section" для якорной ссылки) -->
+                <div id="works-section">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                         <h2 style="margin: 0; font-size: 1.2rem; color: #444;">Работы</h2>
                         {% if is_own_profile %}
@@ -527,39 +436,26 @@
                         {% endif %}
                     </div>
 
-                                       {% if is_own_profile and rejected_works %}
+                    {% if is_own_profile and rejected_works %}
                         <div style="background: #fff5f5; border: 1px solid #ffcccc; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
                             <h3 style="color: #dc3545; margin-top: 0; margin-bottom: 1rem; font-size: 1.1rem;">Отклоненные:</h3>
                             {% for work in rejected_works %}
                                 <div style="display: flex; gap: 1rem; margin-bottom: 1rem; border-bottom: 1px dashed #ffcccc; padding-bottom: 1rem; align-items: center;">
-                                    
-                                    <!-- НОВОЕ: Превью отклоненной работы -->
                                     <div style="width: 80px; height: 80px; flex-shrink: 0; border-radius: 8px; overflow: hidden; border: 2px solid #ffb3b3; background: #fff; display: flex; align-items: center; justify-content: center;">
-                                        {% if work.thumbnail %}
-                                            <img src="{{ work.thumbnail.url }}" style="width: 100%; height: 100%; object-fit: cover;">
-                                        {% elif work.image %}
-                                            <img src="{{ work.image.url }}" style="width: 100%; height: 100%; object-fit: cover;">
-                                        {% elif work.video %}
-                                            <span style="font-size: 2rem; color: #dc3545;">🎬</span>
-                                        {% elif work.audio %}
-                                            <span style="font-size: 2rem; color: #dc3545;">🎵</span>
-                                        {% else %}
-                                            <span style="font-size: 2rem; color: #ccc;">📄</span>
+                                        {% if work.thumbnail %}<img src="{{ work.thumbnail.url }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                        {% elif work.image %}<img src="{{ work.image.url }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                        {% elif work.video %}<span style="font-size: 2rem; color: #dc3545;">🎬</span>
+                                        {% elif work.audio %}<span style="font-size: 2rem; color: #dc3545;">🎵</span>
                                         {% endif %}
                                     </div>
-
-                                    <!-- Текст и причина -->
-                                    <div style="flex-grow: 1;">
+                                    <div style="flex-grow: 1; text-align: left;">
                                         <b>{{ work.title }}</b>
                                         <div style="color: #dc3545; font-size: 0.85rem; margin-top: 0.3rem;">Причина: {{ work.moderator_feedback|default:"Не указана." }}</div>
                                     </div>
-                                    
-                                    <!-- Кнопка удаления -->
                                     <form method="post" action="{% url 'delete_work' work.pk %}" style="margin: 0;">
                                         {% csrf_token %}
                                         <button type="submit" style="background: #dc3545; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem;" onclick="return confirm('Удалить?');">Удалить</button>
                                     </form>
-
                                 </div>
                             {% endfor %}
                         </div>
@@ -570,14 +466,10 @@
                             {% for work in approved_works %}
                                 <div class="work-card {% if work.is_pinned %}pinned{% endif %}" style="{% if work.is_pinned %}border: 2px solid #ffca28;{% endif %}">
                                     <a href="{% url 'work_detail' work.pk %}">
-                                        {% if work.thumbnail %}
-                                            <img src="{{ work.thumbnail.url }}" alt="{{ work.title }}">
-                                        {% elif work.image %}
-                                            <img src="{{ work.image.url }}" alt="{{ work.title }}">
-                                        {% elif work.video %}
-                                            <div style="height: 150px; display: flex; align-items: center; justify-content: center; font-size: 3rem; background: #f8f9fa;">🎬</div>
-                                        {% elif work.audio %}
-                                            <div style="height: 150px; display: flex; align-items: center; justify-content: center; font-size: 3rem; background: #f8f9fa;">🎵</div>
+                                        {% if work.thumbnail %}<img src="{{ work.thumbnail.url }}" alt="{{ work.title }}">
+                                        {% elif work.image %}<img src="{{ work.image.url }}" alt="{{ work.title }}">
+                                        {% elif work.video %}<div style="height: 150px; display: flex; align-items: center; justify-content: center; font-size: 3rem; background: #f8f9fa;">🎬</div>
+                                        {% elif work.audio %}<div style="height: 150px; display: flex; align-items: center; justify-content: center; font-size: 3rem; background: #f8f9fa;">🎵</div>
                                         {% endif %}
                                         {% if work.is_pinned %}
                                             <div style="position: absolute; top: 10px; right: 10px; background: #ffca28; color: #333; padding: 3px 6px; border-radius: 10px; font-size: 0.7rem; font-weight: bold;">📌 Топ</div>
@@ -586,7 +478,6 @@
                                     <div class="work-info">
                                         <a href="{% url 'work_detail' work.pk %}" class="work-title">{{ work.title }}</a>
                                         <div class="work-meta">❤️ {{ work.likes.count }} | 💬 {{ work.comments.count }}</div>
-                                        
                                         {% if is_own_profile %}
                                             <div style="display: flex; justify-content: center; gap: 1rem; margin-top: 0.8rem;">
                                                 <form method="post" action="{% url 'toggle_pin_work' work.pk %}" style="margin: 0;">
@@ -610,11 +501,88 @@
                     {% endif %}
                 </div>
 
+                <div class="section-divider"></div>
+
+                <!-- ================= ВЫПАДАЮЩИЙ БЛОК ПОСТОВ ================= -->
+                <div class="posts-accordion">
+                    <div class="posts-header" onclick="togglePosts(this)">
+                        <span>Посты пользователя</span>
+                        <span class="arrow-icon" style="transition: transform 0.3s;">▼</span>
+                    </div>
+                    
+                    <div class="posts-content" id="postsContent">
+                        
+                        <!-- Форма создания поста (только для себя) -->
+                        {% if is_own_profile %}
+                            <form method="post" enctype="multipart/form-data" style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; border: 1px solid #eee; margin: 1.5rem 0;">
+                                {% csrf_token %}
+                                <input type="hidden" name="create_post" value="1">
+                                <textarea name="text" rows="3" placeholder="Что у вас нового? Поделитесь мыслями..." style="width: 100%; padding: 0.8rem; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 1rem; font-family: inherit; resize: vertical;"></textarea>
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <input type="file" name="image" accept="image/*" style="font-size: 0.9rem;">
+                                    <button type="submit" style="background: #007bff; color: white; border: none; padding: 0.6rem 1.5rem; border-radius: 6px; cursor: pointer; font-weight: 600;">Опубликовать</button>
+                                </div>
+                            </form>
+                        {% endif %}
+
+                        <!-- Список постов -->
+                        {% for post in posts %}
+                            <div class="post-card" style="text-align: left;">
+                                <div class="post-header">
+                                    {% if post.author.avatar %}
+                                        <img src="{{ post.author.avatar.url }}" class="post-avatar">
+                                    {% else %}
+                                        <div class="post-avatar-placeholder">{{ post.author.username|first|upper }}</div>
+                                    {% endif %}
+                                    <div>
+                                        <a href="{% url 'profile_detail' post.author.username %}" style="font-weight: 600; color: #333; text-decoration: none;">{{ post.author.username }}</a>
+                                        <div style="font-size: 0.8rem; color: #888;">{{ post.created_at|date:"d.m.Y H:i" }}</div>
+                                    </div>
+                                </div>
+
+                                {% if post.text %}<p style="font-size: 1rem; line-height: 1.5; color: #333; margin-bottom: 1rem;">{{ post.text|linebreaksbr }}</p>{% endif %}
+                                {% if post.image %}<img src="{{ post.image.url }}" style="max-width: 100%; border-radius: 8px; margin-bottom: 1rem; border: 1px solid #eee;">{% endif %}
+
+                                <div style="display: flex; gap: 1rem; border-top: 1px solid #f0f0f0; padding-top: 1rem;">
+                                    <form method="post" action="{% url 'toggle_post_like' post.id %}" style="margin: 0;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="post-action-btn">
+                                            {% if request.user in post.likes.all %}
+                                                ❤️ <span style="color: #dc3545; font-weight: bold;">{{ post.likes.count }}</span>
+                                            {% else %}
+                                                🤍 <span>{{ post.likes.count }}</span>
+                                            {% endif %}
+                                        </button>
+                                    </form>
+                                    <button onclick="document.getElementById('comments-{{ post.id }}').style.display='block'" class="post-action-btn">
+                                        💬 <span>{{ post.comments.count }}</span>
+                                    </button>
+                                </div>
+
+                                <div id="comments-{{ post.id }}" style="display: none; margin-top: 1rem; background: #f8f9fa; padding: 1rem; border-radius: 8px;">
+                                    {% for comment in post.comments.all %}
+                                        <div style="margin-bottom: 0.8rem; font-size: 0.9rem;"><b>{{ comment.author.username }}</b>: {{ comment.text }}</div>
+                                    {% empty %}
+                                        <div style="font-size: 0.9rem; color: #888; margin-bottom: 0.8rem;">Комментариев пока нет.</div>
+                                    {% endfor %}
+                                    <form method="post" action="{% url 'add_post_comment' post.id %}" style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                                        {% csrf_token %}
+                                        <input type="text" name="text" placeholder="Написать комментарий..." required style="flex-grow: 1; padding: 0.5rem; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9rem;">
+                                        <button type="submit" style="background: #28a745; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.9rem;">Отправить</button>
+                                    </form>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <div style="text-align: center; padding: 2rem 0; color: #888;">Постов пока нет.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+
             </div>
         </main>
     </div>
 
-    <!-- МОДАЛЬНОЕ ОКНО ДЛЯ КВИЗА (показывается только в чужом профиле, если у автора есть вопросы) -->
+    <!-- МОДАЛЬНОЕ ОКНО ДЛЯ КВИЗА -->
     {% if not is_own_profile and user.quiz_questions.exists %}
     <div id="quizModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2000;">
         <div style="background:#fff; max-width:500px; margin:50px auto; padding:20px; border-radius:12px; position:relative; max-height:80vh; overflow-y:auto;">
@@ -624,7 +592,7 @@
             <form method="post" action="{% url 'quiz' user.id %}">
                 {% csrf_token %}
                 {% for q in user.quiz_questions.all %}
-                    <div style="margin-bottom: 15px;">
+                    <div style="margin-bottom: 15px; text-align: left;">
                         <p><b>{{ q.text }}</b></p>
                         {% for opt in q.options.all %}
                             <label style="display:block; margin-bottom:5px; cursor:pointer;">
@@ -642,9 +610,22 @@
 
     <!-- СКРИПТЫ -->
     <script>
+        // Открытие формы редактирования профиля
         function toggleEditForm() {
             const container = document.getElementById('editFormContainer');
             container.classList.toggle('active');
+        }
+
+        // Аккордеон для постов
+        function togglePosts(header) {
+            const content = document.getElementById('postsContent');
+            const arrow = header.querySelector('.arrow-icon');
+            content.classList.toggle('open');
+            if (content.classList.contains('open')) {
+                arrow.style.transform = 'rotate(180deg)';
+            } else {
+                arrow.style.transform = 'rotate(0deg)';
+            }
         }
 
         // Скрипт скрытия/показа шапки
@@ -653,7 +634,6 @@
 
         window.addEventListener('scroll', function() {
             let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-            
             if (scrollTop > lastScrollTop && scrollTop > 30) {
                 header.classList.add('hidden-nav');
             } else {

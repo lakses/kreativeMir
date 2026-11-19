@@ -11,5 +11,8 @@ urlpatterns = [
     path('chat/<int:chat_id>/messages/', views.get_new_messages_api, name='get_new_messages'),
     
     path('quiz/<int:user_id>/', views.quiz_view, name='quiz'),
-    path('quiz/manage/', views.manage_quiz_view, name='manage_quiz')
+    path('quiz/manage/', views.manage_quiz_view, name='manage_quiz'),
+    path('feed/', views.feed_view, name='feed'),
+    path('feed/post/<int:post_id>/like/', views.toggle_post_like_view, name='toggle_post_like'),
+    path('feed/post/<int:post_id>/comment/', views.add_post_comment_view, name='add_post_comment'),
 ]

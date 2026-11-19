@@ -6,7 +6,8 @@ from datetime import timedelta
 from django.contrib.contenttypes.models import ContentType
 from django.http import JsonResponse
 from django.db.models import Q, Max
-from .models import Chat, Message, QuizQuestion, QuizOption
+from .models import Chat, Message, QuizQuestion, QuizOption, Post, PostComment
+
 
 from works.models import Work
 from users.models import Like
@@ -18,7 +19,6 @@ User = get_user_model()
 
 @login_required
 def profile_view(request, username=None):
-    # Кого показываем
     if username:
         profile_user = get_object_or_404(User, username=username)
     else:
@@ -26,10 +26,18 @@ def profile_view(request, username=None):
 
     is_own_profile = (profile_user.pk == request.user.pk)
 
-    # Форма редактирования — только для своего профиля
     form = None
     if is_own_profile:
-        if request.method == 'POST':
+        # Обработка создания ПОСТА
+        if request.method == 'POST' and 'create_post' in request.POST:
+            text = request.POST.get('text')
+            image = request.FILES.get('image')
+            if text or image:
+                Post.objects.create(author=request.user, text=text, image=image)
+            return redirect('profile')
+            
+        # Обработка редактирования ПРОФИЛЯ
+        elif request.method == 'POST' and 'edit_profile' in request.POST:
             form = UserProfileForm(request.POST, request.FILES, instance=request.user)
             if form.is_valid():
                 form.save()
@@ -37,7 +45,6 @@ def profile_view(request, username=None):
         else:
             form = UserProfileForm(instance=request.user)
 
-    # Автоудаление отклонённых — только для своего
     if is_own_profile:
         seven_days_ago = timezone.now() - timedelta(days=7)
         request.user.works.filter(status='rejected', created_at__lt=seven_days_ago).delete()
@@ -48,25 +55,36 @@ def profile_view(request, username=None):
         pending_works = profile_user.works.filter(status='pending')
         rejected_works = profile_user.works.filter(status='rejected')
     else:
-        # Пустые queryset'ы — чтобы шаблон не падал на .count
         pending_works = profile_user.works.none()
         rejected_works = profile_user.works.none()
 
-    # Лайки со всех одобренных работ
     work_ct = ContentType.objects.get_for_model(Work)
     total_likes = Like.objects.filter(
         content_type=work_ct,
         object_id__in=approved_works.values_list('id', flat=True),
     ).count()
 
+    # Получаем посты пользователя
+    posts = profile_user.posts.all().order_by('-created_at')
+
+    # Считаем непрочитанные сообщения для шапки
+    unread_messages_count = 0
+    if request.user.is_authenticated:
+        unread_messages_count = Message.objects.filter(
+            chat__in=Chat.objects.filter(Q(user1=request.user) | Q(user2=request.user)),
+            is_read=False
+        ).exclude(sender=request.user).count()
+
     context = {
-        'user': profile_user,           # переопределяем переменную user в шаблоне
+        'user': profile_user,
         'form': form,
         'is_own_profile': is_own_profile,
         'approved_works': approved_works,
         'pending_works': pending_works,
         'rejected_works': rejected_works,
         'profile_likes_count': total_likes,
+        'posts': posts, # <--- Передаем посты в шаблон
+        'unread_messages_count': unread_messages_count,
     }
     return render(request, 'users/profile.html', context)
 
@@ -228,3 +246,53 @@ def manage_quiz_view(request):
         
     questions = request.user.quiz_questions.prefetch_related('options')
     return render(request, 'users/manage_quiz.html', {'questions': questions})
+
+@login_required
+def feed_view(request):
+    if request.method == 'POST':
+        # Обработка создания поста
+        text = request.POST.get('text')
+        image = request.FILES.get('image')
+        if text or image:
+            Post.objects.create(author=request.user, text=text, image=image)
+            return redirect('feed')
+
+    # Достаем все посты и одобренные работы
+    posts = list(Post.objects.select_related('author').prefetch_related('likes', 'comments'))
+    works = list(Work.objects.filter(status='approved').select_related('author').prefetch_related('likes', 'comments'))
+
+    # Помечаем, где что, чтобы в шаблоне их правильно отрисовать
+    for p in posts:
+        p.type = 'post'
+    for w in works:
+        w.type = 'work'
+
+    # Смешиваем и сортируем по дате создания (новые сверху)
+    feed_items = sorted(posts + works, key=lambda x: x.created_at, reverse=True)
+
+    return render(request, 'users/feed.html', {
+        'feed_items': feed_items,
+    })
+
+
+@login_required
+def toggle_post_like_view(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    like, created = Like.objects.get_or_create(
+        user=request.user,
+        content_type=ContentType.objects.get_for_model(Post),
+        object_id=post.id
+    )
+    if not created:
+        like.delete()
+        return redirect(request.META.get('HTTP_REFERER', 'profile'))
+
+
+@login_required
+def add_post_comment_view(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    if request.method == 'POST':
+        text = request.POST.get('text')
+        if text:
+            PostComment.objects.create(post=post, author=request.user, text=text)
+    return redirect(request.META.get('HTTP_REFERER', 'profile'))

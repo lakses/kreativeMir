@@ -116,3 +116,26 @@ class QuizOption(models.Model):
 
     def __str__(self):
         return self.text
+# В самый конец файла users/models.py добавь это:
+
+class Post(models.Model):
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='posts', on_delete=models.CASCADE)
+    text = models.TextField(blank=True, verbose_name="Текст поста")
+    image = models.ImageField(upload_to='posts/images/%Y/%m/', blank=True, null=True, verbose_name="Картинка")
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    # Используем твою модель Like для лайков постов
+    likes = GenericRelation(Like, related_query_name='post_likes')
+
+    def __str__(self):
+        return f"Пост {self.author.username} от {self.created_at.strftime('%d.%m.%Y %H:%M')}"
+
+
+class PostComment(models.Model):
+    post = models.ForeignKey(Post, related_name='comments', on_delete=models.CASCADE)
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    text = models.TextField(verbose_name="Текст комментария")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.author.username} к посту {self.post.id}"
