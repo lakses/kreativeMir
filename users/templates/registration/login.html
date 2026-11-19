@@ -1,134 +1,176 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Вход в систему</title>
+    <title>Вход — КреативМир</title>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&display=swap" rel="stylesheet">
     <style>
-        /* Делаем фон страницы светло-серым и центрируем карточку */
+        /* --- ОБЩИЕ СТИЛИ И ФОН --- */
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background-color: #f4f7f6; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            min-height: 100vh; 
+            background: url("/media/static/images/fon.jpg") no-repeat center center fixed; 
+            background-size: cover; 
             margin: 0; 
+            padding: 0; 
+            min-height: 100vh; 
+            display: flex;
+            flex-direction: column;
         }
 
-        /* Сама рамка (карточка) */
+        /* --- ВЕРХНЯЯ ПАНЕЛЬ --- */
+        .header-wrapper { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .top-nav { background: linear-gradient(90deg, #1e3a8a, #3b82f6); height: 70px; display: flex; align-items: center; padding: 0 2rem; box-sizing: border-box; justify-content: center; position: relative; }
+        .brand { font-family: 'Caveat', cursive; font-size: 2.2rem; color: #fff; text-decoration: none; text-shadow: 1px 1px 2px rgba(0,0,0,0.2); position: absolute; left: 2rem; }
+        .nav-links { display: flex; align-items: center; gap: 0.5rem; }
+        .diamond { color: rgba(255, 255, 255, 0.6); font-size: 1rem; margin: 0 0.5rem; }
+
+        /* --- ЦЕНТРАЛЬНАЯ ЧАСТЬ --- */
+        .login-wrapper {
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 100px 20px 20px 20px; /* Отступ сверху под шапку */
+        }
+
+        /* Карточка входа */
         .login-card { 
-            background: white; 
+            background: #fff; 
             padding: 2.5rem; 
             border-radius: 12px; 
-            box-shadow: 0 8px 24px rgba(0,0,0,0.08); /* Мягкая тень */
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15); /* Более глубокая тень для объема */
             width: 100%; 
-            max-width: 400px; 
+            max-width: 420px; 
             box-sizing: border-box;
         }
 
-        h2 { 
+        .login-card h2 { 
             text-align: center; 
             margin-top: 0; 
             margin-bottom: 1.5rem; 
-            color: #333; 
+            color: #1e3a8a; /* Темно-синий заголовок */
+            font-size: 1.8rem;
         }
 
         /* Стилизация полей ввода */
         form p { 
-            margin-bottom: 1rem; 
+            margin-bottom: 1.2rem; 
             text-align: left;
         }
         
         form label {
             font-size: 0.9rem;
             color: #555;
-            font-weight: 500;
+            font-weight: 600;
         }
 
         input { 
             width: 100%; 
-            padding: 0.75rem; 
+            padding: 0.8rem; 
             margin-top: 0.4rem; 
             box-sizing: border-box; 
             border: 1px solid #ccc; 
-            border-radius: 6px; 
+            border-radius: 8px; 
             font-size: 1rem;
-            transition: border-color 0.2s;
+            font-family: inherit;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background-color: #f9fafb;
         }
 
         input:focus {
-            border-color: #007bff;
+            border-color: #3b82f6;
             outline: none;
-            box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+            background-color: #fff;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
         }
 
         /* Кнопка */
         button { 
             width: 100%; 
-            padding: 0.8rem; 
-            background: #007bff; 
+            padding: 0.9rem; 
+            background: #3b82f6; 
             color: white; 
             border: none; 
-            border-radius: 6px; 
+            border-radius: 8px; 
             cursor: pointer; 
-            font-size: 16px; 
-            font-weight: bold;
+            font-size: 1.1rem; 
+            font-weight: 600;
             margin-top: 1rem;
-            transition: background 0.2s;
+            transition: background 0.2s, transform 0.1s;
         }
 
         button:hover { 
-            background: #0056b3; 
+            background: #2563eb; 
+        }
+        button:active {
+            transform: scale(0.98);
         }
 
         /* Ссылки и текст внизу */
         .footer-links {
             text-align: center;
             margin-top: 1.5rem;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             color: #666;
         }
 
         .footer-links a {
-            color: #007bff;
+            color: #3b82f6;
             text-decoration: none;
-            font-weight: 500;
+            font-weight: 600;
+            transition: color 0.2s;
         }
 
         .footer-links a:hover {
+            color: #2563eb;
             text-decoration: underline;
         }
 
+        /* Ошибки */
         .error-msg {
-            color: #dc3545; 
+            color: #721c24; 
             text-align: center; 
-            margin-bottom: 1rem; 
-            font-size: 0.9rem;
+            margin-bottom: 1.5rem; 
+            font-size: 0.95rem;
             background: #f8d7da;
-            padding: 0.5rem;
-            border-radius: 6px;
+            padding: 0.8rem;
+            border-radius: 8px;
             border: 1px solid #f5c6cb;
+            font-weight: 500;
         }
     </style>
 </head>
 <body>
 
-    <!-- Вот та самая рамка -->
-    <div class="login-card">
-        <h2>С возвращением!</h2>
-        
-        {% if form.errors %}
-            <div class="error-msg">Неверный логин или пароль. Попробуйте ещё раз.</div>
-        {% endif %}
+    <!-- ВЕРХНЯЯ ПАНЕЛЬ (Упрощенная для страницы входа) -->
+    <header class="header-wrapper">
+        <div class="top-nav">
+            <a href="/" class="brand">КреативМир</a>
+            <span class="diamond">♦</span>
+            <!-- Если нужно, сюда можно добавить пару ссылок, но на логине они обычно не нужны -->
+            <span class="diamond">♦</span>
+        </div>
+    </header>
 
-        <form method="post">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit">Войти</button>
-        </form>
-        
-        <div class="footer-links">
-            Нет аккаунта? <a href="{% url 'register' %}">Зарегистрироваться</a>
+    <!-- ЦЕНТРАЛЬНАЯ ЧАСТЬ -->
+    <div class="login-wrapper">
+        <div class="login-card">
+            <h2>С возвращением!</h2>
+            
+            {% if form.errors %}
+                <div class="error-msg">Неверный логин или пароль. Попробуйте ещё раз.</div>
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit">Войти</button>
+            </form>
+            
+            <div class="footer-links">
+                Нет аккаунта? <a href="{% url 'register' %}">Зарегистрироваться</a>
+            </div>
         </div>
     </div>
 

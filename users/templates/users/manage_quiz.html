@@ -4,54 +4,226 @@
 <head>
     <meta charset="UTF-8">
     <title>Настройка квиза</title>
-    <!-- Вставь стили шапки -->
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&display=swap" rel="stylesheet">
+    <style>
+        /* --- ОБЩИЕ СТИЛИ И ФОН --- */
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: url("/media/static/images/fon.jpg") no-repeat center center fixed; 
+            background-size: cover; 
+            margin: 0; 
+            padding: 0; 
+            color: #333; 
+            min-height: 100vh; 
+        }
+
+        /* --- ВЕРХНЯЯ ПАНЕЛЬ --- */
+        .header-wrapper { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .top-nav { background: linear-gradient(90deg, #1e3a8a, #3b82f6); height: 70px; display: flex; align-items: center; padding: 0 2rem; box-sizing: border-box; justify-content: center; position: relative; }
+        .brand { font-family: 'Caveat', cursive; font-size: 2.2rem; color: #fff; text-decoration: none; text-shadow: 1px 1px 2px rgba(0,0,0,0.2); position: absolute; left: 2rem; }
+        .nav-links { display: flex; align-items: center; gap: 0.5rem; }
+        .diamond { color: rgba(255, 255, 255, 0.6); font-size: 1rem; margin: 0 0.5rem; }
+        .nav-links a { color: #e2e8f0; text-decoration: none; font-size: 0.95rem; font-weight: 500; padding: 0.5rem 1rem; border-radius: 20px; transition: all 0.2s; }
+        .nav-links a:hover { background: rgba(255,255,255,0.15); color: #fff; }
+        .nav-links a.active { background: #3b82f6; color: #fff; font-weight: 600; box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4); }
+
+        /* --- ЦЕНТРАЛЬНАЯ ЧАСТЬ --- */
+        .container { max-width: 800px; margin: 110px auto 20px auto; padding: 0 20px; }
+
+        /* Кнопка Назад */
+        .back-link {
+            display: inline-block;
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+        .back-link:hover { color: #2563eb; text-decoration: underline; }
+
+        /* Основная карточка */
+        .card { 
+            background: #fff; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08); 
+            padding: 2rem; 
+        }
+
+        .card h2 { margin-top: 0; color: #1e3a8a; font-size: 1.5rem; }
+        .card p.subtitle { color: #666; margin-bottom: 2rem; font-size: 0.95rem; }
+
+        /* Форма добавления */
+        .quiz-form { 
+            background: #f8f9fa; 
+            padding: 1.5rem; 
+            border-radius: 10px; 
+            border: 1px solid #eee; 
+            margin-bottom: 2rem; 
+        }
+        
+        .form-label { display: block; font-weight: 600; margin-bottom: 0.5rem; color: #444; font-size: 0.95rem; }
+        
+        .form-input { 
+            width: 100%; 
+            padding: 0.75rem; 
+            margin-bottom: 1rem; 
+            border: 1px solid #ccc; 
+            border-radius: 6px; 
+            font-family: inherit; 
+            font-size: 0.95rem; 
+            box-sizing: border-box;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .form-input:focus { border-color: #3b82f6; outline: none; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+
+        .option-row { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.8rem; }
+        .option-row input[type="radio"] { width: 18px; height: 18px; cursor: pointer; accent-color: #3b82f6; }
+        .option-row input[type="text"] { flex-grow: 1; padding: 0.6rem; border: 1px solid #ccc; border-radius: 6px; font-family: inherit; font-size: 0.95rem; }
+        .option-row input[type="text"]:focus { border-color: #3b82f6; outline: none; }
+
+        .btn-add { 
+            background: #3b82f6; 
+            color: white; 
+            border: none; 
+            padding: 0.75rem 1.5rem; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-weight: 600; 
+            font-size: 1rem;
+            transition: background 0.2s; 
+            margin-top: 0.5rem;
+        }
+        .btn-add:hover { background: #2563eb; }
+
+        /* Список вопросов */
+        .questions-list { margin-top: 1rem; }
+        .question-item { border-bottom: 1px solid #eee; padding: 1.5rem 0; }
+        .question-item:last-child { border-bottom: none; padding-bottom: 0; }
+        
+        .question-text { font-weight: 600; font-size: 1.1rem; color: #222; margin-bottom: 1rem; }
+        
+        .options-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+        .option-item { 
+            padding: 0.6rem 1rem; 
+            border-radius: 8px; 
+            background: #f8f9fa; 
+            border: 1px solid #eee; 
+            font-size: 0.95rem; 
+            color: #555;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        /* Стиль для правильного ответа */
+        .option-item.correct { 
+            background: #e8f5e9; 
+            border-color: #c8e6c9; 
+            color: #2e7d32; 
+            font-weight: 500;
+        }
+        .badge-correct {
+            background: #2e7d32;
+            color: white;
+            font-size: 0.7rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .empty-state { text-align: center; padding: 2rem; color: #888; font-style: italic; }
+
+        @media (max-width: 900px) {
+            .nav-links { overflow-x: auto; padding-bottom: 5px; justify-content: flex-start; width: 100%; }
+            .brand { position: relative; left: 0; margin-right: 1rem; }
+            .diamond { display: none; }
+            .top-nav { flex-wrap: wrap; height: auto; padding: 1rem; justify-content: flex-start; }
+            .container { margin-top: 160px; }
+        }
+    </style>
 </head>
 <body>
-    <!-- Вставь шапку (header) -->
-    
-    <div class="container" style="max-width: 800px; margin: 150px auto;">
-        <div class="card" style="background:#fff; padding:2rem; border-radius:12px;">
-            <h2>Настройка квиза для заказчиков</h2>
-            <p style="color:#666;">Добавьте вопросы, чтобы отсеивать нерелевантные заказы.</p>
+
+    <!-- ВЕРХНЯЯ ПАНЕЛЬ -->
+    <header class="header-wrapper">
+        <div class="top-nav">
+            <a href="{% url 'profile' %}" class="brand">КреативМир</a>
+            <span class="diamond">♦</span>
+            <div class="nav-links">
+                <a href="{% url 'profile' %}">Главная</a>
+                <a href="#">Сообщество</a>
+                <a href="{% url 'feed' %}">Лента</a>
+                <a href="{% url 'creators_list' %}">Авторы</a>
+                <a href="#">События</a>
+                <a href="{% url 'chat_list' %}">Чаты</a>
+            </div>
+            <span class="diamond">♦</span>
+        </div>
+    </header>
+
+    <!-- ОСНОВНОЙ КОНТЕНТ -->
+    <div class="container">
+        
+        <a href="{% url 'profile' %}" class="back-link">← Вернуться в профиль</a>
+
+        <div class="card">
+            <h2>Настройка квиза</h2>
+            <p class="subtitle">Добавьте вопросы, чтобы отсеивать нерелевантные заказы. Клиенты должны будут ответить на них перед тем, как написать вам.</p>
             
-            <form method="post" style="background:#f8f9fa; padding:1.5rem; border-radius:8px; margin-bottom:2rem;">
+            <form method="post" class="quiz-form">
                 {% csrf_token %}
-                <label style="display:block; font-weight:600; margin-bottom:0.5rem;">Вопрос:</label>
-                <input type="text" name="question_text" required style="width:100%; padding:0.6rem; margin-bottom:1rem; border:1px solid #ccc; border-radius:6px;">
+                <label class="form-label">Вопрос:</label>
+                <input type="text" name="question_text" class="form-input" placeholder="Например: Какой у вас бюджет на проект?" required>
                 
-                <label style="display:block; font-weight:600; margin-bottom:0.5rem;">Варианты ответа (отметьте правильный):</label>
-                <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;">
+                <label class="form-label" style="margin-top: 1rem;">Варианты ответа (отметьте кружком правильный):</label>
+                
+                <div class="option-row">
                     <input type="radio" name="correct_option" value="0" required>
-                    <input type="text" name="option_text" placeholder="Вариант 1" required style="flex-grow:1; padding:0.6rem; border:1px solid #ccc; border-radius:6px;">
-                </div>
-                <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;">
-                    <input type="radio" name="correct_option" value="1">
-                    <input type="text" name="option_text" placeholder="Вариант 2" style="flex-grow:1; padding:0.6rem; border:1px solid #ccc; border-radius:6px;">
-                </div>
-                <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:1rem;">
-                    <input type="radio" name="correct_option" value="2">
-                    <input type="text" name="option_text" placeholder="Вариант 3" style="flex-grow:1; padding:0.6rem; border:1px solid #ccc; border-radius:6px;">
+                    <input type="text" name="option_text" placeholder="Вариант 1" required>
                 </div>
                 
-                <button type="submit" style="background:#28a745; color:white; border:none; padding:0.6rem 1.2rem; border-radius:6px; cursor:pointer;">Добавить вопрос</button>
+                <div class="option-row">
+                    <input type="radio" name="correct_option" value="1">
+                    <input type="text" name="option_text" placeholder="Вариант 2">
+                </div>
+                
+                <div class="option-row">
+                    <input type="radio" name="correct_option" value="2">
+                    <input type="text" name="option_text" placeholder="Вариант 3">
+                </div>
+                
+                <button type="submit" class="btn-add">+ Добавить вопрос</button>
             </form>
             
-            <h3>Ваши вопросы:</h3>
-            {% for q in questions %}
-                <div style="border-bottom:1px solid #eee; padding:1rem 0;">
-                    <b>{{ q.text }}</b>
-                    <ul>
-                        {% for opt in q.options.all %}
-                            <li style="color: {% if opt.is_correct %}green{% else %}#666{% endif %};">
-                                {{ opt.text }} {% if opt.is_correct %}(Правильный){% endif %}
-                            </li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            {% empty %}
-                <p style="color:#888;">Вопросов пока нет.</p>
-            {% endfor %}
+            <h3 style="color: #222; margin-bottom: 1rem;">Ваши вопросы:</h3>
+            
+            <div class="questions-list">
+                {% for q in questions %}
+                    <div class="question-item">
+                        <div class="question-text">{{ q.text }}</div>
+                        <ul class="options-list">
+                            {% for opt in q.options.all %}
+                                <li class="option-item {% if opt.is_correct %}correct{% endif %}">
+                                    <span>{{ opt.text }}</span>
+                                    {% if opt.is_correct %}
+                                        <span class="badge-correct">Правильный</span>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% empty %}
+                    <div class="empty-state">
+                        У вас пока нет вопросов. Добавьте первый, чтобы начать фильтровать заказчиков.
+                    </div>
+                {% endfor %}
+            </div>
+
         </div>
     </div>
+
 </body>
 </html>
