@@ -184,8 +184,9 @@ def quiz_view(request, user_id):
     author = get_object_or_404(User, id=user_id)
     questions = author.quiz_questions.prefetch_related('options')
     
+    # Если у автора нет вопросов, сразу кидаем в чат
     if not questions.exists():
-        return redirect(f"/chat/start/{author.id}/")
+        return redirect('start_chat', user_id=author.id)
         
     if request.method == 'POST':
         is_correct_all = True
@@ -200,7 +201,8 @@ def quiz_view(request, user_id):
                 break
                 
         if is_correct_all:
-            return redirect(f"/chat/start/{author.id}/")
+            # Если ответил правильно, кидаем в чат через имя маршрута
+            return redirect('start_chat', user_id=author.id)
         else:
             return render(request, 'users/quiz_result.html', {'author': author})
             

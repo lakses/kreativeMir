@@ -6,9 +6,10 @@
     <title>Мои чаты</title>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&display=swap" rel="stylesheet">
     <style>
-        /* ВСТАВЬ СЮДА ВСЕ СТИЛИ ИЗ creators_list.html (от body до @media) */
-        /* ... (я сокращу для примера, но ты скопируй свои стили шапки) ... */
+        /* --- ОБЩИЕ СТИЛИ И ФОН --- */
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: url("/media/static/images/fon.jpg") no-repeat center center fixed; background-size: cover; margin: 0; padding: 0; color: #333; min-height: 100vh; }
+        
+        /* --- ШАПКА --- */
         .header-wrapper { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
         .top-nav-blue { background: linear-gradient(to right, #5b86e5, #36d1dc); height: 60px; display: flex; align-items: center; padding: 0 2rem; box-sizing: border-box; }
         .brand { font-family: 'Caveat', cursive; font-size: 2.2rem; color: #fff; text-decoration: none; margin-right: 2rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.2); }
@@ -19,22 +20,111 @@
         .nav-auth { margin-left: auto; display: flex; align-items: center; gap: 0.8rem; }
         .nav-logout { background: #fff; border: 1px solid #fff; color: #dc3545; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: all 0.2s; }
         
+        /* --- ЦЕНТРАЛЬНАЯ ЧАСТЬ --- */
         .container { max-width: 900px; margin: 150px auto 20px auto; padding: 0 20px; }
-        .card { background: #fff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); overflow: hidden; }
-        .chat-item { display: flex; align-items: center; padding: 1.5rem; border-bottom: 1px solid #eee; text-decoration: none; color: inherit; transition: background 0.2s; }
-        .chat-item:hover { background: #f8f9fa; }
-        .chat-item.unread { background: #f0f8ff; }
-        .chat-avatar { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; margin-right: 1rem; border: 2px solid #ddd; }
-        .chat-info { flex-grow: 1; }
-        .chat-name { font-size: 1.1rem; font-weight: 600; margin: 0 0 0.2rem 0; color: #222; }
-        .chat-preview { font-size: 0.9rem; color: #666; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 600px; }
-        .chat-meta { text-align: right; }
-        .chat-time { font-size: 0.8rem; color: #999; margin-bottom: 0.3rem; }
-        .badge-collab { background: #e3f2fd; color: #1565c0; font-size: 0.7rem; padding: 0.1rem 0.4rem; border-radius: 4px; font-weight: bold; }
-        .unread-badge { background: #dc3545; color: white; font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 10px; font-weight: bold; }
+        
+        /* Главный белый контейнер */
+        .card { 
+            background: #fff; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08); 
+            overflow: hidden; /* Чтобы скругления работали для первого и последнего элемента */
+        }
+
+        /* Один чат = одна строчка */
+        .chat-item { 
+            display: flex; 
+            align-items: center; 
+            padding: 1.2rem 1.5rem; 
+            text-decoration: none; 
+            color: inherit; 
+            transition: background 0.2s; 
+            border-bottom: 1px solid #eee; /* Разделитель строк */
+        }
+        
+        /* Убираем нижнюю линию у последнего чата в списке */
+        .chat-item:last-child {
+            border-bottom: none;
+        }
+        
+        .chat-item:hover { 
+            background: #f8f9fa; 
+        }
+        
+        .chat-item.unread { 
+            background: #f0f8ff; 
+        }
+
+        /* Аватарка */
+        .chat-avatar { 
+            width: 55px; 
+            height: 55px; 
+            border-radius: 50%; 
+            object-fit: cover; 
+            margin-right: 1.2rem; 
+            border: 2px solid #ddd; 
+            flex-shrink: 0;
+        }
+        
+        /* Информация (ник + текст сообщения) */
+        .chat-info { 
+            flex-grow: 1; 
+            min-width: 0; 
+        }
+        
+        .chat-name { 
+            font-size: 1.1rem; 
+            font-weight: 600; 
+            margin: 0 0 0.3rem 0; 
+            color: #222; 
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .chat-preview { 
+            font-size: 0.9rem; 
+            color: #666; 
+            margin: 0; 
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+        }
+        
+        /* Время и непрочитанные */
+        .chat-meta { 
+            text-align: right; 
+            flex-shrink: 0;
+            margin-left: 1rem;
+        }
+        
+        .chat-time { 
+            font-size: 0.8rem; 
+            color: #999; 
+            margin-bottom: 0.3rem; 
+        }
+        
+        .badge-collab { 
+            background: #e3f2fd; 
+            color: #1565c0; 
+            font-size: 0.7rem; 
+            padding: 0.1rem 0.4rem; 
+            border-radius: 4px; 
+            font-weight: bold; 
+        }
+        
+        .unread-badge { 
+            background: #dc3545; 
+            color: white; 
+            font-size: 0.75rem; 
+            padding: 0.2rem 0.5rem; 
+            border-radius: 10px; 
+            font-weight: bold; 
+        }
     </style>
 </head>
 <body>
+    <!-- ВЕРХНЯЯ ПАНЕЛЬ -->
     <header class="header-wrapper">
         <div class="top-nav-blue">
             <a href="{% url 'profile' %}" class="brand">КреативМир</a>
@@ -58,27 +148,42 @@
         </div>
     </header>
 
+    <!-- СПИСОК ЧАТОВ -->
     <div class="container">
         <div class="card">
             {% for item in chat_data %}
                 <a href="{% url 'chat_detail' item.chat.id %}" class="chat-item {% if item.unread_count > 0 %}unread{% endif %}">
+                    
+                    <!-- Аватарка -->
                     {% if item.other_user.avatar %}
                         <img src="{{ item.other_user.avatar.url }}" class="chat-avatar">
                     {% else %}
-                        <div class="chat-avatar" style="background:#e9ecef; display:flex; align-items:center; justify-content:center; color:#aaa;">Нет</div>
+                        <div class="chat-avatar" style="background:#e9ecef; display:flex; align-items:center; justify-content:center; color:#aaa; font-size: 0.8rem;">Нет</div>
                     {% endif %}
                     
+                    <!-- Информация -->
                     <div class="chat-info">
-                        <h3 class="chat-name">{{ item.other_user.username }} {% if item.chat.is_collaboration %}<span class="badge-collab">🤝 Коллаб</span>{% endif %}</h3>
-                        <p class="chat-preview">{% if item.last_msg %}{{ item.last_msg.text }}{% else %}Нет сообщений{% endif %}</p>
+                        <h3 class="chat-name">
+                            {{ item.other_user.username }} 
+                            {% if item.chat.is_collaboration %}<span class="badge-collab">🤝 Коллаб</span>{% endif %}
+                        </h3>
+                        <p class="chat-preview">
+                            {% if item.last_msg %}
+                                {% if item.last_msg.sender == request.user %}Вы: {% endif %}{{ item.last_msg.text }}
+                            {% else %}
+                                Нет сообщений
+                            {% endif %}
+                        </p>
                     </div>
                     
+                    <!-- Время и метка -->
                     <div class="chat-meta">
                         <div class="chat-time">{{ item.last_msg.timestamp|date:"H:i"|default:"" }}</div>
                         {% if item.unread_count > 0 %}
                             <span class="unread-badge">{{ item.unread_count }}</span>
                         {% endif %}
                     </div>
+                    
                 </a>
             {% empty %}
                 <div style="padding: 3rem; text-align: center; color: #888;">
